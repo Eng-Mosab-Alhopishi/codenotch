@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to CodeNotch</title>
+<style>
+  :root {
+    --bg-window: rgba(15, 15, 23, 0.94);
+    --bg-card: rgba(25, 25, 38, 0.7);
+    --bg-card-hover: rgba(35, 35, 52, 0.85);
+    --bg-card-active: rgba(0, 120, 215, 0.18);
+    --border-card: rgba(255, 255, 255, 0.09);
+    --border-hover: rgba(255, 255, 255, 0.18);
+    --border-active: #0078d4;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --accent: #0078d4;
+    --accent-glow: rgba(0, 120, 215, 0.35);
+    --btn-bg: rgba(255, 255, 255, 0.08);
+    --btn-hover: rgba(255, 255, 255, 0.14);
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    background: transparent;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Main Acrylic Card Container */
+  .wizard-card {
+    width: 780px;
+    height: 580px;
+    background: var(--bg-window);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Header Bar with Drag Region & Window Controls */
+  .wizard-header {
+    height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-card);
+    background: rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+  }
+  .drag-handle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: default;
+  }
+  .app-icon {
+    width: 22px;
+    height: 22px;
+    image-rendering: -webkit-optimize-contrast;
+  }
+  .app-name {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--text-main);
+  }
+  .app-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 120, 215, 0.25);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lang-quick-select {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-card);
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+  }
+  .lang-quick-select:hover {
+    color: var(--text-main);
+    border-color: var(--border-hover);
+  }
+  .btn-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-close:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #f87171;
+  }
+
+  /* Step Breadcrumbs */
+  .step-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid var(--border-card);
+  }
+  .step-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .step-pill.active {
+    color: #fff;
+    background: rgba(0, 120, 215, 0.25);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .step-pill.completed {
+    color: var(--text-muted);
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+  .step-num {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+  .step-pill.active .step-num {
+    background: var(--accent);
+    color: #fff;
+  }
+  .step-pill.completed .step-num {
+    background: #10b981;
+    color: #fff;
+  }
+
+  /* Wizard Body Area */
+  .wizard-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .wizard-pane {
+    display: none;
+    flex-direction: column;
+    animation: fadeIn 0.25s ease forwards;
+  }
+  .wizard-pane.active {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Headings */
+  .hero-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  /* Feature Grid (Step 1) */
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .feat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: all 0.2s ease;
+  }
+  .feat-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+  .feat-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .feat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .feat-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .feat-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* Step 2: Theme Selection */
+  .theme-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .theme-box {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .theme-box:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+  }
+  .theme-box.selected {
+    border-color: #38bdf8;
+    background: var(--bg-card-active);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .theme-thumb {
+    width: 100%;
+    height: 52px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .theme-title {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .theme-tag {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Live Preview Box */
+  .live-preview-box {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px dashed var(--border-hover);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .preview-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  .mock-hud {
+    background: rgba(10, 10, 15, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    width: fit-content;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+  }
+  .mock-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mock-key { font-weight: 700; }
+  .mock-val { font-weight: 700; }
+
+  /* Step 3: Language Selection */
+  .lang-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .lang-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .lang-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+  }
+  .lang-card.selected {
+    border-color: #38bdf8;
+    background: var(--bg-card-active);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .lang-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .lang-native {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .lang-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .lang-chk {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+  .lang-card.selected .lang-chk {
+    background: #0078d4;
+    border-color: #0078d4;
+    color: #fff;
+  }
+
+  /* Step 4: Hotkeys & Final Launch */
+  .hotkeys-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .hk-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+  .hk-badge {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #38bdf8;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .hk-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .hk-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+
+  .launch-banner {
+    background: linear-gradient(135deg, rgba(0, 120, 215, 0.15), rgba(139, 92, 246, 0.15));
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: auto;
+  }
+  .launch-text-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .launch-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .launch-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .btn-launch {
+    background: linear-gradient(135deg, #0078d4, #0284c7);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 120, 215, 0.45);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .btn-launch:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 120, 215, 0.6);
+  }
+  .btn-launch:active {
+    transform: translateY(0);
+  }
+
+  /* Bottom Controls Bar */
+  .wizard-footer {
+    height: 56px;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-card);
+    background: rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+  }
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn {
+    background: var(--btn-bg);
+    border: 1px solid var(--border-card);
+    color: var(--text-main);
+    padding: 7px 18px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--btn-hover);
+    border-color: var(--border-hover);
+  }
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: transparent;
+    color: #fff;
+  }
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.12);
+  }
+
+  /* RTL Support for Arabic */
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+  html[dir="rtl"] .feat-info {
+    text-align: right;
+  }
+  html[dir="rtl"] .lang-card-text {
+    text-align: right;
+  }
+  html[dir="rtl"] .launch-text-wrap {
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<div class="wizard-card" id="wizard-card">
+
+  <!-- Header Bar -->
+  <header class="wizard-header">
+    <div class="drag-handle" id="drag-header">
+      <img src="tray.png" alt="CodeNotch" class="app-icon">
+      <span class="app-name">CodeNotch</span>
+      <span class="app-badge">SETUP WIZARD</span>
+    </div>
+    <div class="header-actions">
+      <select class="lang-quick-select" id="quick-lang-select" title="Change Language">
+        <option value="en">English</option>
+        <option value="ar">العربية</option>
+        <option value="ru">Русский</option>
+        <option value="auto">System Auto</option>
+      </select>
+      <button class="btn-close" id="btn-header-close" title="Close">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Step Breadcrumbs -->
+  <nav class="step-bar" id="step-bar">
+    <div class="step-pill active" data-step="0">
+      <span class="step-num">1</span>
+      <span class="step-txt" data-i18n="step1">Overview</span>
+    </div>
+    <div class="step-pill" data-step="1">
+      <span class="step-num">2</span>
+      <span class="step-txt" data-i18n="step2">Theme</span>
+    </div>
+    <div class="step-pill" data-step="2">
+      <span class="step-num">3</span>
+      <span class="step-txt" data-i18n="step3">Language</span>
+    </div>
+    <div class="step-pill" data-step="3">
+      <span class="step-num">4</span>
+      <span class="step-txt" data-i18n="step4">Launch</span>
+    </div>
+  </nav>
+
+  <!-- Wizard Content Panes -->
+  <main class="wizard-content">
+
+    <!-- Step 1: Feature Overview Tour -->
+    <section class="wizard-pane active" id="pane-0">
+      <h1 class="hero-title" data-i18n="p0_title">Welcome to CodeNotch</h1>
+      <p class="hero-sub" data-i18n="p0_sub">Ultra-low latency AI telemetry and MSI Afterburner-style gaming hardware HUD designed specifically for Windows.</p>
+
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon-wrap" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <div class="feat-info">
+            <div class="feat-name" data-i18n="feat1_name">Gaming HUD &amp; FPS Overlay</div>
+            <div class="feat-desc" data-i18n="feat1_desc">Real-time FPS, 1% Lows, GPU &amp; CPU load, VRAM, and RAM. Flush 0px corner docking against monitor bezels.</div>
+          </div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon-wrap" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="7"></rect><circle cx="12" cy="7" r="2.5"></circle><circle cx="12" cy="14" r="2.5"></circle></svg>
+          </div>
+          <div class="feat-info">
+            <div class="feat-name" data-i18n="feat2_name">Dynamic AI Telemetry Notch</div>
+            <div class="feat-desc" data-i18n="feat2_desc">Floating edge pill tracking Claude Code, Codex, Cursor &amp; Antigravity token quotas and active thinking in real time.</div>
+          </div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </div>
+          <div class="feat-info">
+            <div class="feat-name" data-i18n="feat3_name">Taskbar Clock Vitals</div>
+            <div class="feat-desc" data-i18n="feat3_desc">Dual-digit numbers or live bars right in your system tray showing CPU/RAM vitals or network speeds.</div>
+          </div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon-wrap" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+          </div>
+          <div class="feat-info">
+            <div class="feat-name" data-i18n="feat4_name">Zero Performance Footprint</div>
+            <div class="feat-desc" data-i18n="feat4_desc">Lightweight native Rust engine that runs under 15MB RAM and suppresses self-detection noise.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2: Theme & Appearance -->
+    <section class="wizard-pane" id="pane-1">
+      <h1 class="hero-title" data-i18n="p1_title">Choose Your Visual Style</h1>
+      <p class="hero-sub" data-i18n="p1_sub">Select an aesthetic that matches your desktop setup. You can fine-tune colors anytime in Settings.</p>
+
+      <div class="theme-options">
+        <div class="theme-box selected" data-theme-val="windows">
+          <div class="theme-thumb" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+            <div style="width: 24px; height: 12px; border-radius: 4px; background: #0078d4; box-shadow: 0 0 8px #0078d4;"></div>
+          </div>
+          <div class="theme-title" data-i18n="th_fluent">Windows Fluent</div>
+          <div class="theme-tag" data-i18n="th_fluent_sub">Acrylic &amp; Accent</div>
+        </div>
+
+        <div class="theme-box" data-theme-val="classic">
+          <div class="theme-thumb" style="background: #0f0f14;">
+            <div style="width: 24px; height: 12px; border-radius: 4px; background: #ea580c; box-shadow: 0 0 8px #ea580c;"></div>
+          </div>
+          <div class="theme-title" data-i18n="th_classic">MSI Classic</div>
+          <div class="theme-tag" data-i18n="th_classic_sub">Obsidian &amp; Orange</div>
+        </div>
+
+        <div class="theme-box" data-theme-val="oled">
+          <div class="theme-thumb" style="background: #000000; border-color: #333;">
+            <div style="width: 24px; height: 12px; border-radius: 4px; background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+          </div>
+          <div class="theme-title" data-i18n="th_oled">Pure OLED</div>
+          <div class="theme-tag" data-i18n="th_oled_sub">100% Black</div>
+        </div>
+
+        <div class="theme-box" data-theme-val="cyber">
+          <div class="theme-thumb" style="background: linear-gradient(135deg, #050b14, #11052c);">
+            <div style="width: 24px; height: 12px; border-radius: 4px; background: #06b6d4; box-shadow: 0 0 8px #d946ef;"></div>
+          </div>
+          <div class="theme-title" data-i18n="th_cyber">Cyber Neon</div>
+          <div class="theme-tag" data-i18n="th_cyber_sub">High Contrast Glow</div>
+        </div>
+      </div>
+
+      <!-- Live Mockup Preview -->
+      <div class="live-preview-box">
+        <span class="preview-label" data-i18n="preview_label">Live HUD Telemetry Preview</span>
+        <div class="mock-hud" id="mock-hud">
+          <div class="mock-row">
+            <span class="mock-key" style="color: #f97316;">GPU</span>
+            <span class="mock-val" style="color: #ffffff;">98 %</span>
+            <span style="color: #94a3b8; font-size: 11px;">1845 MHz · 67°C</span>
+          </div>
+          <div class="mock-row">
+            <span class="mock-key" style="color: #38bdf8;">CPU</span>
+            <span class="mock-val" style="color: #ffffff;">42 %</span>
+            <span style="color: #94a3b8; font-size: 11px;">4.50 GHz · 61°C</span>
+          </div>
+          <div class="mock-row">
+            <span class="mock-key" style="color: #4ade80;">FPS</span>
+            <span class="mock-val" style="color: #ffffff;">144</span>
+            <span style="color: #94a3b8; font-size: 11px;">6.9 ms · 1% Low 118</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Language & Localization -->
+    <section class="wizard-pane" id="pane-2">
+      <h1 class="hero-title" data-i18n="p2_title">Select Interface Language</h1>
+      <p class="hero-sub" data-i18n="p2_sub">Choose your preferred language for the floating notch, settings panel, and telemetry widgets.</p>
+
+      <div class="lang-grid">
+        <div class="lang-card" data-lang-val="ar">
+          <div class="lang-card-text">
+            <div class="lang-native">العربية</div>
+            <div class="lang-sub">واجهة عربية كاملة بمحاذاة اليمين</div>
+          </div>
+          <div class="lang-chk">✓</div>
+        </div>
+
+        <div class="lang-card selected" data-lang-val="en">
+          <div class="lang-card-text">
+            <div class="lang-native">English</div>
+            <div class="lang-sub">Default international layout</div>
+          </div>
+          <div class="lang-chk">✓</div>
+        </div>
+
+        <div class="lang-card" data-lang-val="ru">
+          <div class="lang-card-text">
+            <div class="lang-native">Русский</div>
+            <div class="lang-sub">Полная русская локализация</div>
+          </div>
+          <div class="lang-chk">✓</div>
+        </div>
+
+        <div class="lang-card" data-lang-val="auto">
+          <div class="lang-card-text">
+            <div class="lang-native" data-i18n="lang_system">System Default</div>
+            <div class="lang-sub" data-i18n="lang_system_sub">Follow Windows language setting</div>
+          </div>
+          <div class="lang-chk">✓</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 4: Shortcuts & Launch -->
+    <section class="wizard-pane" id="pane-3">
+      <h1 class="hero-title" data-i18n="p3_title">Essential Shortcuts &amp; Tips</h1>
+      <p class="hero-sub" data-i18n="p3_sub">Keep these hotkeys in mind while gaming or coding. Everything is ready to go!</p>
+
+      <div class="hotkeys-grid">
+        <div class="hk-card">
+          <div class="hk-badge">Ctrl + Alt + H</div>
+          <div class="hk-label" data-i18n="hk1_name">Toggle Gaming HUD</div>
+          <div class="hk-desc" data-i18n="hk1_desc">Instantly show or hide the floating hardware overlay anywhere.</div>
+        </div>
+
+        <div class="hk-card">
+          <div class="hk-badge">Ctrl + Alt + L</div>
+          <div class="hk-label" data-i18n="hk2_name">Lock Click-Through</div>
+          <div class="hk-desc" data-i18n="hk2_desc">Lock HUD clicks so your mouse clicks pass straight through into 3D games.</div>
+        </div>
+
+        <div class="hk-card">
+          <div class="hk-badge">Ctrl + Alt + N</div>
+          <div class="hk-label" data-i18n="hk3_name">Focus Dynamic Notch</div>
+          <div class="hk-desc" data-i18n="hk3_desc">Bring the screen bezel pill into focus to inspect active AI tokens.</div>
+        </div>
+      </div>
+
+      <div class="launch-banner">
+        <div class="launch-text-wrap">
+          <div class="launch-heading" data-i18n="ready_heading">You're All Set!</div>
+          <div class="launch-sub" data-i18n="ready_sub">Right-click the HUD anytime to snap to 0px flush corners, change font sizes, or switch themes.</div>
+        </div>
+        <button class="btn-launch" id="btn-final-launch">
+          <span data-i18n="btn_start">Start CodeNotch</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Navigation -->
+  <footer class="wizard-footer">
+    <div class="footer-left">
+      <button class="btn" id="btn-skip" data-i18n="btn_skip">Skip Tour</button>
+    </div>
+    <div class="footer-right">
+      <button class="btn" id="btn-back" disabled data-i18n="btn_back">Back</button>
+      <button class="btn btn-primary" id="btn-next">
+        <span data-i18n="btn_next">Next</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const BRIDGE = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) || null;
+function invoke(cmd, args){
+  if(!BRIDGE) return Promise.resolve();
+  return BRIDGE(cmd, args);
+}
+
+// Translations Dictionary
+const I18N = {
+  en: {
+    step1: "Overview",
+    step2: "Theme",
+    step3: "Language",
+    step4: "Launch",
+    p0_title: "Welcome to CodeNotch",
+    p0_sub: "Ultra-low latency AI telemetry and MSI Afterburner-style gaming hardware HUD designed specifically for Windows.",
+    feat1_name: "Gaming HUD & FPS Overlay",
+    feat1_desc: "Real-time FPS, 1% Lows, GPU & CPU load, VRAM, and RAM. Flush 0px corner docking against monitor bezels.",
+    feat2_name: "Dynamic AI Telemetry Notch",
+    feat2_desc: "Floating edge pill tracking Claude Code, Codex, Cursor & Antigravity token quotas and active thinking in real time.",
+    feat3_name: "Taskbar Clock Vitals",
+    feat3_desc: "Dual-digit numbers or live bars right in your system tray showing CPU/RAM vitals or network speeds.",
+    feat4_name: "Zero Performance Footprint",
+    feat4_desc: "Lightweight native Rust engine that runs under 15MB RAM and suppresses self-detection noise.",
+    p1_title: "Choose Your Visual Style",
+    p1_sub: "Select an aesthetic that matches your desktop setup. You can fine-tune colors anytime in Settings.",
+    th_fluent: "Windows Fluent",
+    th_fluent_sub: "Acrylic & Accent",
+    th_classic: "MSI Classic",
+    th_classic_sub: "Obsidian & Orange",
+    th_oled: "Pure OLED",
+    th_oled_sub: "100% Black",
+    th_cyber: "Cyber Neon",
+    th_cyber_sub: "High Contrast Glow",
+    preview_label: "Live HUD Telemetry Preview",
+    p2_title: "Select Interface Language",
+    p2_sub: "Choose your preferred language for the floating notch, settings panel, and telemetry widgets.",
+    lang_system: "System Default",
+    lang_system_sub: "Follow Windows language setting",
+    p3_title: "Essential Shortcuts & Tips",
+    p3_sub: "Keep these hotkeys in mind while gaming or coding. Everything is ready to go!",
+    hk1_name: "Toggle Gaming HUD",
+    hk1_desc: "Instantly show or hide the floating hardware overlay anywhere.",
+    hk2_name: "Lock Click-Through",
+    hk2_desc: "Lock HUD clicks so your mouse clicks pass straight through into 3D games.",
+    hk3_name: "Focus Dynamic Notch",
+    hk3_desc: "Bring the screen bezel pill into focus to inspect active AI tokens.",
+    ready_heading: "You're All Set!",
+    ready_sub: "Right-click the HUD anytime to snap to 0px flush corners, change font sizes, or switch themes.",
+    btn_start: "Start CodeNotch",
+    btn_skip: "Skip Tour",
+    btn_back: "Back",
+    btn_next: "Next",
+  },
+  ar: {
+    step1: "نظرة عامة",
+    step2: "المظهر",
+    step3: "اللغة",
+    step4: "الانطلاق",
+    p0_title: "مرحبًا بك في CodeNotch",
+    p0_sub: "لوحة تحكم تفاعلية فائقة السرعة لمؤشرات الألعاب على طريقة MSI Afterburner وتتبع مساعدي الذكاء الاصطناعي على ويندوز.",
+    feat1_name: "شاشة قراءات الألعاب والـ FPS",
+    feat1_desc: "معدل الإطارات الحي، 1% Low، حرارة وحمل المعالج والكرت، استهلاك الذاكرة، مع تثبيت 0 بكسل على حواف الشاشة مباشرة.",
+    feat2_name: "النوتش العائم الذكي للـ AI",
+    feat2_desc: "حبة عائمة تلتصق بحافة الشاشة تتابع استهلاك توكنز Claude Code و Codex و Cursor و Antigravity لحظة بلحظة.",
+    feat3_name: "مؤشرات شريط المهام بجانب الساعة",
+    feat3_desc: "أرقام ثنائية أو أشرطة بيانية حية تعرض استهلاك المعالج والرام وسرعات الإنترنت في شريط المهام مباشرة.",
+    feat4_name: "أداء فائق واستهلاك شبه معدوم",
+    feat4_desc: "محرك Rust محلي خفيف للغاية يستهلك أقل من 15 ميجابايت رام مع عزل تام للضوضاء.",
+    p1_title: "اختر المظهر والثيم المناسب",
+    p1_sub: "اختر الطابع البصري الذي يناسب سطح مكتبك. يمكنك تخصيص الألوان والخطوط لاحقاً من الإعدادات.",
+    th_fluent: "ويندوز فلوينت",
+    th_fluent_sub: "زجاجي ميكا مع لون النظام",
+    th_classic: "إم إس آي كلاسيك",
+    th_classic_sub: "داكن مع برتقالي احترافي",
+    th_oled: "أسود نقي OLED",
+    th_oled_sub: "أسود مطلق 100%",
+    th_cyber: "سايبر نيون",
+    th_cyber_sub: "توهج عالي التباين",
+    preview_label: "معاينة حية لشاشة القراءات (HUD)",
+    p2_title: "اختر لغة الواجهة",
+    p2_sub: "حدد لغتك المفضلة لشاشة القراءات العائمة، وقائمة الإعدادات، وأيقونة شريط المهام.",
+    lang_system: "تلقائي بحسب النظام",
+    lang_system_sub: "مطابقة لغة نظام ويندوز الحالية",
+    p3_title: "أهم الاختصارات والنصائح",
+    p3_sub: "احفظ هذه الاختصارات السريعة أثناء اللعب أو البرمجة. كل شيء جاهز للبدء!",
+    hk1_name: "إظهار/إخفاء شاشة القراءات",
+    hk1_desc: "إظهار أو إخفاء لوحة المؤشرات العائمة على الفور في أي مكان.",
+    hk2_name: "قفل النقر (Lock Click)",
+    hk2_desc: "تفعيل وضع النقر الشفاف لكي تمر نقرات الماوس مباشرة داخل ألعابك دون تعطيل.",
+    hk3_name: "التركيز على النوتش العائم",
+    hk3_desc: "جلب الحبة العائمة للواجهة لمتابعة استهلاك التوكنز وجلسات الذكاء الاصطناعي.",
+    ready_heading: "أنت الآن جاهز تماماً!",
+    ready_sub: "انقر كليك يمين على شاشة القراءات لتثبيتها في زاوية الشاشة بمحاذاة 0 بكسل أو تغيير حجم الخط.",
+    btn_start: "ابدأ استخدام كود نوتش",
+    btn_skip: "تخطي الجولة",
+    btn_back: "السابق",
+    btn_next: "التالي",
+  },
+  ru: {
+    step1: "Обзор",
+    step2: "Тема",
+    step3: "Язык",
+    step4: "Запуск",
+    p0_title: "Добро пожаловать в CodeNotch",
+    p0_sub: "Высокоточная телеметрия для разработчиков и игровой оверлей в стиле MSI Afterburner для Windows.",
+    feat1_name: "Игровой HUD и FPS оверлей",
+    feat1_desc: "FPS в реальном времени, 1% Low, нагрузка и температуры GPU/CPU, VRAM и RAM с фиксацией 0px к краям экрана.",
+    feat2_name: "Динамический AI-нотч",
+    feat2_desc: "Плавающая плашка на краю экрана с подсчетом токенов и квот Claude Code, Codex, Cursor и Antigravity.",
+    feat3_name: "Показатели в трее рядом с часами",
+    feat3_desc: "Двузначные цифры или графики прямо в трее для нагрузки процессора, памяти и сетевого трафика.",
+    feat4_name: "Минимальное потребление ресурсов",
+    feat4_desc: "Легковесный движок на Rust, использующий менее 15 МБ памяти без нагрузки на систему.",
+    p1_title: "Выберите визуальный стиль",
+    p1_sub: "Выберите тему, подходящую вашему рабочему столу. Цвета можно изменить в настройках.",
+    th_fluent: "Windows Fluent",
+    th_fluent_sub: "Акрил и акцент системы",
+    th_classic: "MSI Classic",
+    th_classic_sub: "Темный обсидиан и оранжевый",
+    th_oled: "Чистый OLED",
+    th_oled_sub: "100% глубокий черный",
+    th_cyber: "Cyber Neon",
+    th_cyber_sub: "Яркое неоновое свечение",
+    preview_label: "Предварительный просмотр оверлея",
+    p2_title: "Выберите язык интерфейса",
+    p2_sub: "Выберите удобный язык для плавающего нотча, оверлея и панели настроек.",
+    lang_system: "Системный",
+    lang_system_sub: "Использовать язык Windows",
+    p3_title: "Полезные горячие клавиши",
+    p3_sub: "Запомните эти сочетания клавиш во время игр и работы. Всё готово к использованию!",
+    hk1_name: "Оверлей телеметрии",
+    hk1_desc: "Быстро скрыть или показать игровой оверлей в любом месте.",
+    hk2_name: "Блокировка кликов (Lock)",
+    hk2_desc: "Пропускать клики мыши сквозь оверлей прямо в игры.",
+    hk3_name: "Фокус на нотче",
+    hk3_desc: "Активировать плашку на краю экрана для просмотра квот токенов.",
+    ready_heading: "Всё готово к работе!",
+    ready_sub: "Нажмите правой кнопкой мыши на оверлей, чтобы привязать к углу (0px) или настроить размер.",
+    btn_start: "Начать работу",
+    btn_skip: "Пропустить",
+    btn_back: "Назад",
+    btn_next: "Далее",
+  }
+};
+
+let currentStep = 0;
+const totalSteps = 4;
+let selectedTheme = 'windows';
+let selectedLang = 'en';
+
+function applyTranslations(lang){
+  const t = I18N[lang] || I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(t[key]) el.textContent = t[key];
+  });
+  if(lang === 'ar'){
+    document.documentElement.setAttribute('dir', 'rtl');
+  } else {
+    document.documentElement.setAttribute('dir', 'ltr');
+  }
+  const sel = document.getElementById('quick-lang-select');
+  if(sel) sel.value = lang;
+}
+
+function updateStepUI(){
+  // Update step pills
+  const pills = document.querySelectorAll('.step-pill');
+  pills.forEach((p, idx) => {
+    p.classList.toggle('active', idx === currentStep);
+    p.classList.toggle('completed', idx < currentStep);
+  });
+
+  // Update panes
+  for(let i = 0; i < totalSteps; i++){
+    const pane = document.getElementById('pane-' + i);
+    if(pane){
+      pane.classList.toggle('active', i === currentStep);
+    }
+  }
+
+  // Update buttons
+  const btnBack = document.getElementById('btn-back');
+  const btnNext = document.getElementById('btn-next');
+  if(btnBack) btnBack.disabled = (currentStep === 0);
+
+  if(btnNext){
+    if(currentStep === totalSteps - 1){
+      btnNext.style.display = 'none';
+    } else {
+      btnNext.style.display = 'inline-flex';
+    }
+  }
+}
+
+function updateMockPreview(theme){
+  const mock = document.getElementById('mock-hud');
+  if(!mock) return;
+  if(theme === 'oled'){
+    mock.style.background = '#000000';
+    mock.style.borderColor = 'rgba(255,255,255,0.2)';
+    mock.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.3)';
+  } else if(theme === 'cyber'){
+    mock.style.background = 'rgba(5, 11, 20, 0.9)';
+    mock.style.borderColor = '#06b6d4';
+    mock.style.boxShadow = '0 0 16px rgba(6, 182, 212, 0.35)';
+  } else if(theme === 'classic'){
+    mock.style.background = '#0f0f14';
+    mock.style.borderColor = 'rgba(234, 88, 12, 0.4)';
+    mock.style.boxShadow = '0 0 12px rgba(234, 88, 12, 0.25)';
+  } else {
+    mock.style.background = 'rgba(15, 23, 42, 0.85)';
+    mock.style.borderColor = 'rgba(56, 189, 248, 0.35)';
+    mock.style.boxShadow = '0 0 14px rgba(0, 120, 215, 0.3)';
+  }
+}
+
+function finishAndLaunch(){
+  invoke('finish_welcome', {
+    theme: selectedTheme,
+    lang: selectedLang
+  }).catch(e => {
+    console.error('finish_welcome error:', e);
+  });
+}
+
+// Event Listeners Initialization
+document.addEventListener('DOMContentLoaded', () => {
+  // Try reading current system/saved lang
+  invoke('get_lang').then(l => {
+    if(l && (l === 'ar' || l === 'en' || l === 'ru' || l === 'auto')){
+      selectedLang = l;
+      applyTranslations(l);
+      // Select card in step 3
+      document.querySelectorAll('.lang-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.langVal === l);
+      });
+    }
+  }).catch(()=>{});
+
+  // Breadcrumbs navigation
+  document.querySelectorAll('.step-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const target = Number(pill.dataset.step);
+      if(!isNaN(target) && target >= 0 && target < totalSteps){
+        currentStep = target;
+        updateStepUI();
+      }
+    });
+  });
+
+  // Next / Back buttons
+  const btnNext = document.getElementById('btn-next');
+  if(btnNext){
+    btnNext.addEventListener('click', () => {
+      if(currentStep < totalSteps - 1){
+        currentStep++;
+        updateStepUI();
+      }
+    });
+  }
+  const btnBack = document.getElementById('btn-back');
+  if(btnBack){
+    btnBack.addEventListener('click', () => {
+      if(currentStep > 0){
+        currentStep--;
+        updateStepUI();
+      }
+    });
+  }
+
+  // Skip & Launch buttons
+  const btnSkip = document.getElementById('btn-skip');
+  if(btnSkip) btnSkip.addEventListener('click', finishAndLaunch);
+  const btnLaunch = document.getElementById('btn-final-launch');
+  if(btnLaunch) btnLaunch.addEventListener('click', finishAndLaunch);
+  const btnClose = document.getElementById('btn-header-close');
+  if(btnClose) btnClose.addEventListener('click', finishAndLaunch);
+
+  // Theme selector (Step 2)
+  const themeBoxes = document.querySelectorAll('.theme-box');
+  themeBoxes.forEach(box => {
+    box.addEventListener('click', () => {
+      themeBoxes.forEach(b => b.classList.remove('selected'));
+      box.classList.add('selected');
+      selectedTheme = box.dataset.themeVal || 'windows';
+      updateMockPreview(selectedTheme);
+      invoke('set_appearance', { style: selectedTheme }).catch(()=>{});
+    });
+  });
+
+  // Language selector (Step 3)
+  const langCards = document.querySelectorAll('.lang-card');
+  langCards.forEach(card => {
+    card.addEventListener('click', () => {
+      langCards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const val = card.dataset.langVal || 'en';
+      selectedLang = val;
+      applyTranslations(val);
+      invoke('set_lang', { lang: val }).catch(()=>{});
+    });
+  });
+
+  // Quick Lang Select in header
+  const quickLang = document.getElementById('quick-lang-select');
+  if(quickLang){
+    quickLang.addEventListener('change', e => {
+      const val = e.target.value;
+      selectedLang = val;
+      applyTranslations(val);
+      langCards.forEach(c => {
+        c.classList.toggle('selected', c.dataset.langVal === val);
+      });
+      invoke('set_lang', { lang: val }).catch(()=>{});
+    });
+  }
+
+  // Drag handle for frameless window
+  const dragHeader = document.getElementById('drag-header');
+  if(dragHeader){
+    dragHeader.addEventListener('mousedown', e => {
+      if(e.button === 0 && window.__TAURI__ && window.__TAURI__.window){
+        window.__TAURI__.window.getCurrentWindow().startDragging().catch(()=>{});
+      }
+    });
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight'){
+      if(document.documentElement.getAttribute('dir') === 'rtl'){
+        if(currentStep > 0){ currentStep--; updateStepUI(); }
+      } else {
+        if(currentStep < totalSteps - 1){ currentStep++; updateStepUI(); }
+      }
+    } else if(e.key === 'ArrowLeft'){
+      if(document.documentElement.getAttribute('dir') === 'rtl'){
+        if(currentStep < totalSteps - 1){ currentStep++; updateStepUI(); }
+      } else {
+        if(currentStep > 0){ currentStep--; updateStepUI(); }
+      }
+    } else if(e.key === 'Enter'){
+      if(currentStep === totalSteps - 1){
+        finishAndLaunch();
+      } else {
+        currentStep++;
+        updateStepUI();
+      }
+    } else if(e.key === 'Escape'){
+      finishAndLaunch();
+    }
+  });
+
+  updateStepUI();
+  updateMockPreview(selectedTheme);
+});
+</script>
+</body>
+</html>

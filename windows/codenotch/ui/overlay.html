@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeNotch Gaming OSD</title>
+<style>
+  :root {
+    --osd-bg-opacity: 0.001;
+    --osd-font-size: 14px;
+    --osd-line-height: 1.45;
+    
+    /* MSI Classic Theme */
+    --col-fps: #ff7700;
+    --col-low: #ff9800;
+    --col-gpu: #00e5ff;
+    --col-vram: #18ffff;
+    --col-cpu: #00e5ff;
+    --col-ram: #e040fb;
+    --col-page: #b388ff;
+    --col-net: #00e676;
+    --col-day: #ffd600;
+    --col-app: #94a3b8;
+    --col-lbl: #e2e8f0;
+    --col-sub: #cbd5e1;
+  }
+
+  /* Themes */
+  body.theme-cyber {
+    --col-fps: #39ff14;
+    --col-low: #76ff03;
+    --col-gpu: #00f0ff;
+    --col-vram: #00e5ff;
+    --col-cpu: #ff007f;
+    --col-ram: #d500f9;
+    --col-page: #a855f7;
+    --col-net: #ff7000;
+    --col-day: #ffea00;
+    --col-app: #a5b4fc;
+    --col-lbl: #f8fafc;
+    --col-sub: #cbd5e1;
+  }
+
+  body.theme-mono {
+    --col-fps: #ffffff;
+    --col-low: #e2e8f0;
+    --col-gpu: #f8fafc;
+    --col-vram: #e2e8f0;
+    --col-cpu: #f1f5f9;
+    --col-ram: #e2e8f0;
+    --col-page: #cbd5e1;
+    --col-net: #cbd5e1;
+    --col-day: #94a3b8;
+    --col-app: #64748b;
+    --col-lbl: #ffffff;
+    --col-sub: #94a3b8;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    background: transparent !important;
+    overflow: hidden;
+    font-family: 'Consolas', 'Cascadia Code', 'Lucida Console', monospace;
+    color: #ffffff;
+  }
+
+  /* Main OSD Container - 100% borderless, transparent, floating text with drag capability */
+  #osd-wrap {
+    width: 100%;
+    height: 100%;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, var(--osd-bg-opacity, 0.001));
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    cursor: grab;
+    position: relative;
+    user-select: none;
+  }
+
+  #osd-wrap.dragging {
+    cursor: grabbing;
+  }
+
+  /* Floating Toast for Hotkey & Lock feedback */
+  #toast-badge {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    opacity: 0;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #38bdf8;
+    white-space: nowrap;
+    z-index: 2000;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  #toast-badge.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Authentic MSI Afterburner / RTSS text shadows for 100% legibility over 3D games */
+  .osd-line {
+    display: flex;
+    align-items: baseline;
+    font-size: var(--osd-font-size, 14px);
+    line-height: var(--osd-line-height, 1.45);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    text-shadow: 
+      1px 1px 0 #000, 
+      -1px -1px 0 #000, 
+      1px -1px 0 #000, 
+      -1px 1px 0 #000,
+      0 2px 4px rgba(0, 0, 0, 0.95);
+    pointer-events: none;
+  }
+
+  .osd-lbl {
+    width: 58px;
+    color: var(--col-lbl);
+    opacity: 0.92;
+    flex-shrink: 0;
+  }
+
+  .osd-val {
+    font-weight: 800;
+    margin-right: 6px;
+  }
+
+  .osd-sub {
+    font-size: calc(var(--osd-font-size, 14px) * 0.85);
+    color: var(--col-sub);
+    font-weight: 600;
+  }
+
+  /* Line color mapping */
+  .line-fps .osd-val { color: var(--col-fps); }
+  .line-low .osd-val { color: var(--col-low); }
+  .line-gpu .osd-val { color: var(--col-gpu); }
+  .line-vram .osd-val { color: var(--col-vram); }
+  .line-cpu .osd-val { color: var(--col-cpu); }
+  .line-ram .osd-val { color: var(--col-ram); }
+  .line-page .osd-val { color: var(--col-page); }
+  .line-net .osd-val { color: var(--col-net); }
+  .line-day .osd-val { color: var(--col-day); }
+  .line-app .osd-val { color: var(--col-app); }
+
+  /* Redesigned Compact Context Menu: 2-column grid, segmented controls, guaranteed zero clipping */
+  #ctx-menu {
+    position: fixed;
+    display: none;
+    z-index: 1000;
+    background: rgba(13, 17, 23, 0.96);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    padding: 12px 14px;
+    width: 334px;
+    max-height: 550px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    font-size: 11px;
+    color: #f1f5f9;
+  }
+
+  #ctx-menu::-webkit-scrollbar {
+    width: 4px;
+  }
+  #ctx-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+  }
+
+  #ctx-menu.show {
+    display: block;
+    animation: menuIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes menuIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .ctx-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .ctx-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .ctx-close-btn {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: #94a3b8;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .ctx-close-btn:hover {
+    background: rgba(239, 68, 68, 0.7);
+    color: #fff;
+  }
+
+  .ctx-sec-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 6px 0 4px 0;
+  }
+
+  /* 2-Column Metrics Chip Grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .metric-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  .metric-chip:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #f1f5f9;
+  }
+
+  .metric-chip.active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #ffffff;
+  }
+
+  .metric-check {
+    width: 12px;
+    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  /* Screen Position Presets */
+  .pos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .pos-btn {
+    padding: 5px 3px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 5px;
+    color: #cbd5e1;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .pos-btn:hover {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #38bdf8;
+  }
+
+  .pos-btn-center {
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 5px 0;
+  }
+
+  /* Segmented Controls for Themes, Sizes, Opacity */
+  .seg-row {
+    display: flex;
+    gap: 3px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 2px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 6px;
+  }
+
+  .seg-item {
+    flex: 1;
+    text-align: center;
+    padding: 4px 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .seg-item:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .seg-item.active {
+    background: rgba(56, 189, 248, 0.22);
+    color: #38bdf8;
+    font-weight: 700;
+  }
+
+  /* Action Buttons */
+  .ctx-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .ctx-act-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .ctx-act-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+
+  /* Right-docked alignment for clean right-edge appearance */
+  #osd-wrap.dock-right {
+    align-items: flex-end;
+  }
+  #osd-wrap.dock-right .osd-line {
+    justify-content: flex-end;
+  }
+
+  .margin-chip {
+    padding: 3px 6px;
+    font-size: 9.5px;
+    font-weight: 600;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .margin-chip:hover {
+    background: rgba(56, 189, 248, 0.22);
+    color: #38bdf8;
+  }
+  .margin-chip.active {
+    background: rgba(56, 189, 248, 0.35);
+    border-color: rgba(56, 189, 248, 0.7);
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- Borderless, 100% transparent OSD container -->
+<div id="osd-wrap">
+
+  <!-- Floating Toast Badge for Hotkey and Lock Notifications -->
+  <div id="toast-badge">🔒 Locked · Press Ctrl+Alt+L to Unlock</div>
+
+  <!-- FPS & Frametime Line -->
+  <div class="osd-line line-fps" id="line-fps">
+    <span class="osd-lbl">FPS</span>
+    <span class="osd-val" id="val-fps">144</span>
+    <span class="osd-sub" id="val-fps-sub">FPS · 6.9 ms</span>
+  </div>
+
+  <!-- 1% Low & Average FPS Line -->
+  <div class="osd-line line-low" id="line-low">
+    <span class="osd-lbl">1% LOW</span>
+    <span class="osd-val" id="val-low">118</span>
+    <span class="osd-sub" id="val-low-sub">FPS (Avg 141)</span>
+  </div>
+
+  <!-- GPU Line (Load, Frequency & Temp) -->
+  <div class="osd-line line-gpu" id="line-gpu">
+    <span class="osd-lbl">GPU</span>
+    <span class="osd-val" id="val-gpu">97.0 %</span>
+    <span class="osd-sub" id="val-gpu-sub">2450 MHz · 68°C</span>
+  </div>
+
+  <!-- VRAM Line (Video Memory Used & Total) -->
+  <div class="osd-line line-vram" id="line-vram">
+    <span class="osd-lbl">VRAM</span>
+    <span class="osd-val" id="val-vram">6.2 GB</span>
+    <span class="osd-sub" id="val-vram-sub">(78%)</span>
+  </div>
+
+  <!-- CPU Line (Load, Clock & Temp) -->
+  <div class="osd-line line-cpu" id="line-cpu">
+    <span class="osd-lbl">CPU</span>
+    <span class="osd-val" id="val-cpu">24.5 %</span>
+    <span class="osd-sub" id="val-cpu-sub">3.60 GHz · 52°C (16c)</span>
+  </div>
+
+  <!-- RAM Line (Memory Used & Total) -->
+  <div class="osd-line line-ram" id="line-ram">
+    <span class="osd-lbl">RAM</span>
+    <span class="osd-val" id="val-ram">14.2 GB</span>
+    <span class="osd-sub" id="val-ram-pct">(44%)</span>
+  </div>
+
+  <!-- Pagefile / Commit Charge Line -->
+  <div class="osd-line line-page" id="line-page">
+    <span class="osd-lbl">PAGE</span>
+    <span class="osd-val" id="val-page">18.5 GB</span>
+    <span class="osd-sub" id="val-page-sub">Commit</span>
+  </div>
+
+  <!-- Network Line (Live Download / Upload) -->
+  <div class="osd-line line-net" id="line-net">
+    <span class="osd-lbl">NET</span>
+    <span class="osd-val" id="val-net">↓ 4.8 MB/s</span>
+    <span class="osd-sub" id="val-net-up">↑ 320 KB/s</span>
+  </div>
+
+  <!-- Daily Data Line -->
+  <div class="osd-line line-day" id="line-day">
+    <span class="osd-lbl">DAY</span>
+    <span class="osd-val" id="val-day">1.25 GB</span>
+    <span class="osd-sub">Today</span>
+  </div>
+
+  <!-- Active Game / Application Line -->
+  <div class="osd-line line-app" id="line-app" style="display:none;">
+    <span class="osd-lbl">GAME</span>
+    <span class="osd-val" id="val-app" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">Cyberpunk 2077</span>
+  </div>
+</div>
+
+<!-- Compact, Unclipped Context Menu -->
+<div id="ctx-menu" class="no-drag">
+  <div class="ctx-header">
+    <div class="ctx-title">
+      <span>🎮</span>
+      <span>OSD HUD Settings</span>
+    </div>
+    <div class="ctx-close-btn" id="ctx-btn-close-menu" title="Close menu">✕</div>
+  </div>
+
+  <!-- 2-Column Metrics Toggles -->
+  <div class="ctx-sec-title">Visible Metrics</div>
+  <div class="metrics-grid">
+    <div class="metric-chip active" data-toggle="fps">
+      <span class="metric-check" id="chk-fps">✓</span>
+      <span>FPS & Frametime</span>
+    </div>
+    <div class="metric-chip active" data-toggle="low">
+      <span class="metric-check" id="chk-low">✓</span>
+      <span>1% Low & Avg</span>
+    </div>
+    <div class="metric-chip active" data-toggle="gpu">
+      <span class="metric-check" id="chk-gpu">✓</span>
+      <span>GPU & Clock</span>
+    </div>
+    <div class="metric-chip active" data-toggle="vram">
+      <span class="metric-check" id="chk-vram">✓</span>
+      <span>VRAM Memory</span>
+    </div>
+    <div class="metric-chip active" data-toggle="cpu">
+      <span class="metric-check" id="chk-cpu">✓</span>
+      <span>CPU & Temp</span>
+    </div>
+    <div class="metric-chip active" data-toggle="ram">
+      <span class="metric-check" id="chk-ram">✓</span>
+      <span>RAM Memory</span>
+    </div>
+    <div class="metric-chip active" data-toggle="page">
+      <span class="metric-check" id="chk-page">✓</span>
+      <span>Pagefile Commit</span>
+    </div>
+    <div class="metric-chip active" data-toggle="net">
+      <span class="metric-check" id="chk-net">✓</span>
+      <span>Live Network</span>
+    </div>
+    <div class="metric-chip active" data-toggle="day">
+      <span class="metric-check" id="chk-day">✓</span>
+      <span>Today's Data</span>
+    </div>
+    <div class="metric-chip" data-toggle="app">
+      <span class="metric-check" id="chk-app"></span>
+      <span>Game Title</span>
+    </div>
+  </div>
+
+  <!-- Position Presets (Snap to Screen Corners) -->
+  <div class="ctx-sec-title">HUD Position & Docking (موضع وتثبيت الشاشة)</div>
+  <div class="pos-grid">
+    <button class="pos-btn" data-snap="top-left">↖ Top-L</button>
+    <button class="pos-btn" data-snap="top-right">↗ Top-R</button>
+    <button class="pos-btn" data-snap="bottom-left">↙ Btm-L</button>
+    <button class="pos-btn" data-snap="bottom-right">↘ Btm-R</button>
+  </div>
+  <button class="pos-btn pos-btn-center" data-snap="center">• Center Screen (وسط الشاشة)</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:1px 0;">
+    <span style="font-size:10px;color:#94a3b8;">Border Margin:</span>
+    <div style="display:flex;gap:4px;">
+      <button class="margin-chip" data-margin="0" title="Flush with monitor edge (0px)">0px (أقصى الزاوية)</button>
+      <button class="margin-chip active" data-margin="8">8px</button>
+      <button class="margin-chip" data-margin="16">16px</button>
+    </div>
+  </div>
+
+  <!-- Color Scheme Segmented Control -->
+  <div class="ctx-sec-title">Color Scheme</div>
+  <div class="seg-row">
+    <div class="seg-item active" data-theme="msi">MSI Classic</div>
+    <div class="seg-item" data-theme="cyber">Cyber Neon</div>
+    <div class="seg-item" data-theme="mono">Monochrome</div>
+  </div>
+
+  <!-- Font Size Controller (Free Number Input + Range Slider) -->
+  <div class="ctx-sec-title">Font Size (حجم الخط)</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <input type="range" id="ctx-font-range" min="9" max="36" value="14" style="flex:1;accent-color:#38bdf8;cursor:pointer;">
+    <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);">
+      <input type="number" id="ctx-font-num" min="9" max="36" value="14" style="width:36px;border:none;background:transparent;color:#fff;font-weight:700;font-family:Consolas,monospace;text-align:center;outline:none;font-size:12px;">
+      <span style="font-size:11px;color:rgba(255,255,255,0.5)">px</span>
+    </div>
+  </div>
+  <div class="seg-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:8px;">
+    <div class="seg-item" data-size="9">9px</div>
+    <div class="seg-item" data-size="12">12px</div>
+    <div class="seg-item active" data-size="14">14px</div>
+    <div class="seg-item" data-size="18">18px</div>
+    <div class="seg-item" data-size="24">24px</div>
+  </div>
+
+  <!-- Background Tint Segmented Control -->
+  <div class="ctx-sec-title">Background Shade</div>
+  <div class="seg-row">
+    <div class="seg-item active" data-bg="0.0">0% Pure</div>
+    <div class="seg-item" data-bg="0.25">25% Faint</div>
+    <div class="seg-item" data-bg="0.5">50% Dark</div>
+  </div>
+
+  <!-- Action Controls -->
+  <div class="ctx-actions">
+    <button class="ctx-act-btn" id="ctx-btn-lock" title="Shortcut: Ctrl+Alt+L">
+      <span>📌</span>
+      <span>Lock Click (Ctrl+Alt+L)</span>
+    </button>
+    <button class="ctx-act-btn warn" id="ctx-btn-hide" title="Shortcut: Ctrl+Alt+H">
+      <span>✕</span>
+      <span>Hide HUD</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const BRIDGE = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) || null;
+  function invoke(cmd, args){
+    if(!BRIDGE) return Promise.reject(new Error('no bridge'));
+    return BRIDGE(cmd, args);
+  }
+
+  function getTauriWindow(){
+    try {
+      if(window.__TAURI__?.window?.getCurrentWindow){
+        return window.__TAURI__.window.getCurrentWindow();
+      }
+      if(window.__TAURI__?.webviewWindow?.getCurrentWebviewWindow){
+        return window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
+      }
+    } catch(e){}
+    return null;
+  }
+
+  // Persistent OSD configuration
+  let osdCfg = {
+    show_fps: true,
+    show_low: true,
+    show_gpu: true,
+    show_vram: true,
+    show_cpu: true,
+    show_ram: true,
+    show_page: true,
+    show_net: true,
+    show_day: true,
+    show_app: false,
+    theme: 'msi',
+    fontSize: 14,
+    bgOpacity: 0.0,
+    dock: 'top-left',
+    marginX: 8,
+    marginY: 8,
+    clickthrough: false
+  };
+
+  try {
+    const saved = localStorage.getItem('codenotch.osd_config');
+    if(saved) osdCfg = Object.assign(osdCfg, JSON.parse(saved));
+  } catch(e){}
+
+  function saveOsdCfg(){
+    try {
+      localStorage.setItem('codenotch.osd_config', JSON.stringify(osdCfg));
+    } catch(e){}
+    invoke('save_overlay_metrics', {
+      config: {
+        fontSize: osdCfg.fontSize,
+        theme: osdCfg.theme,
+        bgOpacity: osdCfg.bgOpacity,
+        dock: osdCfg.dock,
+        margin_x: osdCfg.marginX,
+        margin_y: osdCfg.marginY,
+        show_fps: !!osdCfg.show_fps,
+        show_low: !!osdCfg.show_low,
+        show_gpu: !!osdCfg.show_gpu,
+        show_vram: !!osdCfg.show_vram,
+        show_cpu: !!osdCfg.show_cpu,
+        show_ram: !!osdCfg.show_ram,
+        show_page: !!osdCfg.show_page,
+        show_net: !!osdCfg.show_net,
+        show_day: !!osdCfg.show_day,
+        show_app: !!osdCfg.show_app
+      }
+    }).catch(()=>{});
+  }
+
+  function setOsdFontSize(sz){
+    const parsed = parseInt(sz, 10);
+    if(isNaN(parsed)) return;
+    const clamped = Math.max(9, Math.min(36, parsed));
+    osdCfg.fontSize = clamped;
+    applyOsdVisuals();
+    saveOsdCfg();
+  }
+
+  invoke('get_hardware_config').then(cfg => {
+    if(cfg && typeof cfg === 'object'){
+      if(cfg.overlay_font_size) osdCfg.fontSize = cfg.overlay_font_size;
+      if(cfg.overlay_theme) osdCfg.theme = cfg.overlay_theme;
+      if(typeof cfg.overlay_bg_opacity === 'number') osdCfg.bgOpacity = cfg.overlay_bg_opacity;
+      if(cfg.overlay_dock) osdCfg.dock = cfg.overlay_dock;
+      if(typeof cfg.overlay_margin_x === 'number') osdCfg.marginX = cfg.overlay_margin_x;
+      if(typeof cfg.overlay_margin_y === 'number') osdCfg.marginY = cfg.overlay_margin_y;
+      if(typeof cfg.overlay_show_fps === 'boolean') osdCfg.show_fps = cfg.overlay_show_fps;
+      if(typeof cfg.overlay_show_low === 'boolean') osdCfg.show_low = cfg.overlay_show_low;
+      if(typeof cfg.overlay_show_gpu === 'boolean') osdCfg.show_gpu = cfg.overlay_show_gpu;
+      if(typeof cfg.overlay_show_vram === 'boolean') osdCfg.show_vram = cfg.overlay_show_vram;
+      if(typeof cfg.overlay_show_cpu === 'boolean') osdCfg.show_cpu = cfg.overlay_show_cpu;
+      if(typeof cfg.overlay_show_ram === 'boolean') osdCfg.show_ram = cfg.overlay_show_ram;
+      if(typeof cfg.overlay_show_page === 'boolean') osdCfg.show_page = cfg.overlay_show_page;
+      if(typeof cfg.overlay_show_net === 'boolean') osdCfg.show_net = cfg.overlay_show_net;
+      if(typeof cfg.overlay_show_day === 'boolean') osdCfg.show_day = cfg.overlay_show_day;
+      if(typeof cfg.overlay_show_app === 'boolean') osdCfg.show_app = cfg.overlay_show_app;
+      applyOsdVisuals();
+    }
+  }).catch(()=>{});
+
+  // Elements
+  const osdWrap = document.getElementById('osd-wrap');
+  const ctxMenu = document.getElementById('ctx-menu');
+  const toastBadge = document.getElementById('toast-badge');
+
+  const lineFps = document.getElementById('line-fps');
+  const lineLow = document.getElementById('line-low');
+  const lineGpu = document.getElementById('line-gpu');
+  const lineVram = document.getElementById('line-vram');
+  const lineCpu = document.getElementById('line-cpu');
+  const lineRam = document.getElementById('line-ram');
+  const linePage = document.getElementById('line-page');
+  const lineNet = document.getElementById('line-net');
+  const lineDay = document.getElementById('line-day');
+  const lineApp = document.getElementById('line-app');
+
+  const valFps = document.getElementById('val-fps');
+  const valFpsSub = document.getElementById('val-fps-sub');
+  const valLow = document.getElementById('val-low');
+  const valLowSub = document.getElementById('val-low-sub');
+  const valGpu = document.getElementById('val-gpu');
+  const valGpuSub = document.getElementById('val-gpu-sub');
+  const valVram = document.getElementById('val-vram');
+  const valVramSub = document.getElementById('val-vram-sub');
+  const valCpu = document.getElementById('val-cpu');
+  const valCpuSub = document.getElementById('val-cpu-sub');
+  const valRam = document.getElementById('val-ram');
+  const valRamPct = document.getElementById('val-ram-pct');
+  const valPage = document.getElementById('val-page');
+  const valPageSub = document.getElementById('val-page-sub');
+  const valNet = document.getElementById('val-net');
+  const valNetUp = document.getElementById('val-net-up');
+  const valDay = document.getElementById('val-day');
+  const valApp = document.getElementById('val-app');
+
+  let toastTimer = null;
+  function showToast(text){
+    clearTimeout(toastTimer);
+    toastBadge.textContent = text;
+    toastBadge.classList.add('show');
+    toastTimer = setTimeout(() => {
+      toastBadge.classList.remove('show');
+    }, 3200);
+  }
+
+  function applyOsdVisuals(){
+    // Lines visibility
+    lineFps.style.display = osdCfg.show_fps ? 'flex' : 'none';
+    lineLow.style.display = osdCfg.show_low ? 'flex' : 'none';
+    lineGpu.style.display = osdCfg.show_gpu ? 'flex' : 'none';
+    lineVram.style.display = osdCfg.show_vram ? 'flex' : 'none';
+    lineCpu.style.display = osdCfg.show_cpu ? 'flex' : 'none';
+    lineRam.style.display = osdCfg.show_ram ? 'flex' : 'none';
+    linePage.style.display = osdCfg.show_page ? 'flex' : 'none';
+    lineNet.style.display = osdCfg.show_net ? 'flex' : 'none';
+    lineDay.style.display = osdCfg.show_day ? 'flex' : 'none';
+    lineApp.style.display = osdCfg.show_app ? 'flex' : 'none';
+
+    // Theme class
+    document.body.className = osdCfg.theme === 'cyber' ? 'theme-cyber' : (osdCfg.theme === 'mono' ? 'theme-mono' : '');
+
+    // Font size & Background
+    document.documentElement.style.setProperty('--osd-font-size', osdCfg.fontSize + 'px');
+    document.documentElement.style.setProperty('--osd-bg-opacity', Math.max(0.001, osdCfg.bgOpacity));
+
+    // Update Context Menu Metric Chips
+    const updateChip = (key, on) => {
+      const chip = document.querySelector(`.metric-chip[data-toggle="${key}"]`);
+      const chk = document.getElementById(`chk-${key}`);
+      if(chip) chip.classList.toggle('active', on);
+      if(chk) chk.textContent = on ? '✓' : '';
+    };
+
+    updateChip('fps', osdCfg.show_fps);
+    updateChip('low', osdCfg.show_low);
+    updateChip('gpu', osdCfg.show_gpu);
+    updateChip('vram', osdCfg.show_vram);
+    updateChip('cpu', osdCfg.show_cpu);
+    updateChip('ram', osdCfg.show_ram);
+    updateChip('page', osdCfg.show_page);
+    updateChip('net', osdCfg.show_net);
+    updateChip('day', osdCfg.show_day);
+    updateChip('app', osdCfg.show_app);
+
+    // Segmented theme
+    document.querySelectorAll('.seg-item[data-theme]').forEach(el => {
+      el.classList.toggle('active', el.dataset.theme === osdCfg.theme);
+    });
+
+    // Segmented font size
+    document.querySelectorAll('.seg-item[data-size]').forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.size) === osdCfg.fontSize);
+    });
+
+    // Font inputs sync
+    const inpNum = document.getElementById('ctx-font-num');
+    const inpRng = document.getElementById('ctx-font-range');
+    if(inpNum && document.activeElement !== inpNum) inpNum.value = osdCfg.fontSize;
+    if(inpRng && document.activeElement !== inpRng) inpRng.value = osdCfg.fontSize;
+
+    // Segmented background shade
+    document.querySelectorAll('.seg-item[data-bg]').forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.bg) === osdCfg.bgOpacity);
+    });
+
+    // Dock alignment class (align text to right edge if docked to right corners)
+    if(osdCfg.dock && osdCfg.dock.includes('right')){
+      osdWrap.classList.add('dock-right');
+    } else {
+      osdWrap.classList.remove('dock-right');
+    }
+
+    // Update margin chips
+    document.querySelectorAll('.margin-chip').forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.margin) === osdCfg.marginX);
+    });
+
+    // Context menu lock button active state
+    const btnLock = document.getElementById('ctx-btn-lock');
+    if(btnLock){
+      btnLock.classList.toggle('active', osdCfg.clickthrough);
+      btnLock.innerHTML = osdCfg.clickthrough
+        ? '<span>🔓</span><span>Unlock Click (Ctrl+Alt+L)</span>'
+        : '<span>📌</span><span>Lock Click (Ctrl+Alt+L)</span>';
+    }
+
+    // Auto-fit window size tightly to content when menu is closed
+    if(!ctxMenu.classList.contains('show')){
+      adjustWindowSize(false);
+    }
+  }
+
+  let lastReportedW = 0;
+  let lastReportedH = 0;
+  function adjustWindowSize(isMenuOpen = false){
+    if(isMenuOpen){
+      invoke('resize_overlay_window', { width: 360, height: 580 }).catch(()=>{});
+      return;
+    }
+    const wrap = document.getElementById('osd-wrap');
+    if(!wrap) return;
+    const w = Math.max(140, Math.min(480, Math.ceil(wrap.scrollWidth) + 16));
+    const h = Math.max(70, Math.min(480, Math.ceil(wrap.scrollHeight) + 16));
+    if(Math.abs(w - lastReportedW) > 4 || Math.abs(h - lastReportedH) > 4){
+      lastReportedW = w;
+      lastReportedH = h;
+      invoke('resize_overlay_window', { width: w, height: h }).catch(()=>{});
+    }
+  }
+
+  applyOsdVisuals();
+
+  // Font input listeners
+  const fontNum = document.getElementById('ctx-font-num');
+  const fontRng = document.getElementById('ctx-font-range');
+  if(fontNum){
+    fontNum.addEventListener('input', e => setOsdFontSize(e.target.value));
+    fontNum.addEventListener('change', e => setOsdFontSize(e.target.value));
+  }
+  if(fontRng){
+    fontRng.addEventListener('input', e => setOsdFontSize(e.target.value));
+  }
+
+  // Metrics Polling
+  async function updateMetrics(){
+    try {
+      const m = await invoke('get_system_metrics');
+      if(!m) return;
+
+      // FPS & Frametime
+      valFps.textContent = Math.round(m.fps || 60);
+      valFpsSub.textContent = 'FPS · ' + (m.frametime_ms || 16.6).toFixed(1) + ' ms';
+
+      // 1% Low & Average
+      valLow.textContent = Math.round(m.fps_1pct_low || (m.fps * 0.82) || 48);
+      valLowSub.textContent = 'FPS (Avg ' + Math.round(m.fps_avg || m.fps || 60) + ')';
+
+      // GPU Load, Clock & Temp
+      valGpu.textContent = (m.gpu_usage_pct || 0).toFixed(1) + ' %';
+      valGpuSub.textContent = (m.gpu_mhz || 1400) + ' MHz · ' + Math.round(m.gpu_temp || 55) + '°C';
+
+      // VRAM
+      const vramGb = ((m.vram_used_mb || 0) / 1024).toFixed(1);
+      valVram.textContent = vramGb + ' GB';
+      valVramSub.textContent = '(' + Math.round(m.vram_usage_pct || 0) + '%)';
+
+      // CPU Load, Clock & Temp
+      valCpu.textContent = (m.cpu_usage || 0).toFixed(1) + ' %';
+      const ghz = ((m.cpu_mhz || 3600) / 1000).toFixed(2);
+      valCpuSub.textContent = ghz + ' GHz · ' + Math.round(m.cpu_temp || 50) + '°C (' + (m.cpu_cores || 1) + 'c)';
+
+      // RAM
+      const ramGb = ((m.ram_used_mb || 0) / 1024).toFixed(1);
+      valRam.textContent = ramGb + ' GB';
+      valRamPct.textContent = '(' + Math.round(m.ram_usage_pct || 0) + '%)';
+
+      // Pagefile / Commit
+      const pageGb = ((m.pagefile_used_mb || 0) / 1024).toFixed(1);
+      valPage.textContent = pageGb + ' GB';
+      valPageSub.textContent = 'Commit';
+
+      // NET
+      valNet.textContent = '↓ ' + (m.net_download_speed || '0 B/s');
+      valNetUp.textContent = '↑ ' + (m.net_upload_speed || '0 B/s');
+
+      // DAY
+      valDay.textContent = m.daily_download_str || '0 MB';
+
+      // APP (Active external game only)
+      if(m.active_app && m.active_app.trim() !== '' && osdCfg.show_app){
+        valApp.textContent = m.active_app;
+        lineApp.style.display = 'flex';
+      } else {
+        lineApp.style.display = 'none';
+      }
+    } catch(e){}
+  }
+
+  setInterval(updateMetrics, 1000);
+  updateMetrics();
+
+  // Strict Drag-on-Click Implementation (Zero Hover Dragging, Zero Edge Snag)
+  let isPointerDown = false;
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragLastScreenX = 0;
+  let dragLastScreenY = 0;
+  let activePointerId = null;
+  const DRAG_THRESHOLD = 3;
+
+  osdWrap.addEventListener('pointerdown', e => {
+    // Only primary left mouse button (button 0)
+    if(e.button !== 0) return;
+
+    // Do not drag if clicking inside context menu or interactive elements
+    if(e.target.closest('#ctx-menu') || e.target.closest('input') || e.target.closest('button')){
+      return;
+    }
+
+    // If context menu is open, a left click outside closes it
+    if(ctxMenu.classList.contains('show')){
+      hideContextMenu();
+      return;
+    }
+
+    isPointerDown = true;
+    isDragging = false;
+    dragStartX = e.screenX;
+    dragStartY = e.screenY;
+    dragLastScreenX = e.screenX;
+    dragLastScreenY = e.screenY;
+    activePointerId = e.pointerId;
+  });
+
+  window.addEventListener('pointermove', e => {
+    // CRITICAL: If left mouse button is NOT currently pressed down, abort immediately!
+    // This 100% guarantees ZERO drag on hover!
+    if((e.buttons & 1) === 0){
+      if(isPointerDown || isDragging){
+        finishPointerDrag(e);
+      }
+      return;
+    }
+
+    if(!isPointerDown) return;
+
+    // Must exceed movement threshold before drag initiates
+    if(!isDragging){
+      const dist = Math.hypot(e.screenX - dragStartX, e.screenY - dragStartY);
+      if(dist >= DRAG_THRESHOLD){
+        isDragging = true;
+        dragLastScreenX = e.screenX;
+        dragLastScreenY = e.screenY;
+        osdWrap.classList.add('dragging');
+        try {
+          if(activePointerId !== null) osdWrap.setPointerCapture(activePointerId);
+        } catch(err){}
+      } else {
+        return;
+      }
+    }
+
+    const dx = Math.round(e.screenX - dragLastScreenX);
+    const dy = Math.round(e.screenY - dragLastScreenY);
+    if(dx !== 0 || dy !== 0){
+      dragLastScreenX = e.screenX;
+      dragLastScreenY = e.screenY;
+      invoke('move_overlay_by', { dx, dy }).catch(()=>{});
+    }
+  });
+
+  function finishPointerDrag(e){
+    const wasDragging = isDragging;
+    isPointerDown = false;
+    isDragging = false;
+    osdWrap.classList.remove('dragging');
+
+    if(activePointerId !== null){
+      try {
+        osdWrap.releasePointerCapture(activePointerId);
+      } catch(err){}
+      activePointerId = null;
+    }
+
+    if(wasDragging){
+      const win = getTauriWindow();
+      if(win && typeof win.outerPosition === 'function'){
+        win.outerPosition().then(pos => {
+          if(pos){
+            invoke('save_overlay_position', { x: Math.round(pos.x), y: Math.round(pos.y) }).catch(()=>{});
+          }
+        }).catch(()=>{});
+      }
+    }
+  }
+
+  window.addEventListener('pointerup', finishPointerDrag);
+  window.addEventListener('pointercancel', finishPointerDrag);
+  window.addEventListener('blur', finishPointerDrag);
+
+  // Context Menu Management (Exclusively opened via right-click)
+  function showContextMenu(clientX, clientY){
+    adjustWindowSize(true);
+    ctxMenu.classList.add('show');
+    ctxMenu.style.left = '8px';
+    ctxMenu.style.top = '8px';
+  }
+
+  function hideContextMenu(){
+    if(!ctxMenu.classList.contains('show')) return;
+    ctxMenu.classList.remove('show');
+    adjustWindowSize(false);
+  }
+
+  window.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    showContextMenu(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('click', e => {
+    if(!e.target.closest('#ctx-menu')){
+      hideContextMenu();
+    }
+  });
+
+  // Escape key closes context menu or hides HUD
+  window.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      if(ctxMenu.classList.contains('show')){
+        hideContextMenu();
+      } else {
+        invoke('toggle_overlay', { show: false }).catch(()=>{});
+      }
+    }
+  });
+
+  // Dock Positioning & Margins (Zero-margin flush support)
+  function snapTo(corner, margin){
+    const targetCorner = corner || osdCfg.dock || 'top-left';
+    const targetMargin = (typeof margin === 'number') ? margin : osdCfg.marginX;
+    osdCfg.dock = targetCorner;
+    osdCfg.marginX = targetMargin;
+    osdCfg.marginY = targetMargin;
+
+    if(targetCorner.includes('right')){
+      osdWrap.classList.add('dock-right');
+    } else {
+      osdWrap.classList.remove('dock-right');
+    }
+
+    document.querySelectorAll('.margin-chip').forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.margin) === targetMargin);
+    });
+
+    invoke('snap_overlay_position', {
+      corner: targetCorner,
+      margin_x: targetMargin,
+      margin_y: targetMargin
+    }).then(() => {
+      showToast('Dock: ' + targetCorner.toUpperCase() + ' (' + targetMargin + 'px)');
+      saveOsdCfg();
+    }).catch(()=>{});
+  }
+
+  document.getElementById('ctx-btn-close-menu').addEventListener('click', e => {
+    e.stopPropagation();
+    hideContextMenu();
+  });
+
+  // Context Menu Item Click Handling
+  ctxMenu.addEventListener('click', async e => {
+    const item = e.target.closest('[data-toggle], [data-snap], [data-margin], [data-theme], [data-size], [data-bg], #ctx-btn-lock, #ctx-btn-hide');
+    if(!item) return;
+
+    if(item.dataset.toggle){
+      const k = 'show_' + item.dataset.toggle;
+      osdCfg[k] = !osdCfg[k];
+      applyOsdVisuals();
+      saveOsdCfg();
+    } else if(item.dataset.snap){
+      snapTo(item.dataset.snap, osdCfg.marginX);
+    } else if(item.dataset.margin !== undefined){
+      const m = Number(item.dataset.margin);
+      snapTo(osdCfg.dock, m);
+    } else if(item.dataset.theme){
+      osdCfg.theme = item.dataset.theme;
+      applyOsdVisuals();
+      saveOsdCfg();
+    } else if(item.dataset.size){
+      setOsdFontSize(item.dataset.size);
+    } else if(item.dataset.bg){
+      osdCfg.bgOpacity = Number(item.dataset.bg);
+      applyOsdVisuals();
+      saveOsdCfg();
+    } else if(item.id === 'ctx-btn-lock'){
+      hideContextMenu();
+      const nextCt = !osdCfg.clickthrough;
+      invoke('set_overlay_clickthrough', { clickthrough: nextCt }).catch(()=>{});
+    } else if(item.id === 'ctx-btn-hide'){
+      hideContextMenu();
+      invoke('toggle_overlay', { show: false }).catch(()=>{});
+    }
+  });
+
+  // Background events (Hotkeys & State broadcasts)
+  if(window.__TAURI__ && window.__TAURI__.event){
+    window.__TAURI__.event.listen('overlay_clickthrough_state', e => {
+      const isLocked = !!e.payload;
+      osdCfg.clickthrough = isLocked;
+      const btnLock = document.getElementById('ctx-btn-lock');
+      if(btnLock){
+        btnLock.classList.toggle('active', isLocked);
+        btnLock.innerHTML = isLocked
+          ? '<span>🔓</span><span>Unlock Click (Ctrl+Alt+L)</span>'
+          : '<span>📌</span><span>Lock Click (Ctrl+Alt+L)</span>';
+      }
+      if(isLocked){
+        showToast('🔒 Click-Through LOCKED (Ctrl+Alt+L to Unlock)');
+      } else {
+        showToast('🔓 Click-Through UNLOCKED (Interactive mode)');
+      }
+    });
+
+    window.__TAURI__.event.listen('overlay_config_changed', e => {
+      const p = e.payload;
+      if(p && typeof p === 'object'){
+        if(p.overlay_font_size) osdCfg.fontSize = p.overlay_font_size;
+        if(p.overlay_theme) osdCfg.theme = p.overlay_theme;
+        if(typeof p.overlay_bg_opacity === 'number') osdCfg.bgOpacity = p.overlay_bg_opacity;
+        if(p.overlay_dock) osdCfg.dock = p.overlay_dock;
+        if(typeof p.overlay_margin_x === 'number') osdCfg.marginX = p.overlay_margin_x;
+        if(typeof p.overlay_margin_y === 'number') osdCfg.marginY = p.overlay_margin_y;
+        if(typeof p.overlay_show_fps === 'boolean') osdCfg.show_fps = p.overlay_show_fps;
+        if(typeof p.overlay_show_low === 'boolean') osdCfg.show_low = p.overlay_show_low;
+        if(typeof p.overlay_show_gpu === 'boolean') osdCfg.show_gpu = p.overlay_show_gpu;
+        if(typeof p.overlay_show_vram === 'boolean') osdCfg.show_vram = p.overlay_show_vram;
+        if(typeof p.overlay_show_cpu === 'boolean') osdCfg.show_cpu = p.overlay_show_cpu;
+        if(typeof p.overlay_show_ram === 'boolean') osdCfg.show_ram = p.overlay_show_ram;
+        if(typeof p.overlay_show_page === 'boolean') osdCfg.show_page = p.overlay_show_page;
+        if(typeof p.overlay_show_net === 'boolean') osdCfg.show_net = p.overlay_show_net;
+        if(typeof p.overlay_show_day === 'boolean') osdCfg.show_day = p.overlay_show_day;
+        if(typeof p.overlay_show_app === 'boolean') osdCfg.show_app = p.overlay_show_app;
+        applyOsdVisuals();
+      }
+    });
+  }
+</script>
+</body>
+</html>
