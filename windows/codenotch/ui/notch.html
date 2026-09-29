@@ -1150,24 +1150,39 @@ function renderHardwareCell(cell, svg, pct, glyph, wrap){
     svg.innerHTML = inner;
     pct.textContent = text;
   } else if(hwRingMetric === 'net'){
-    // Dual Network Mode: Display BOTH Download and Upload clearly with distinct arrows & colors
+    // Smart Dual Network Mode: Alternate smoothly between Download and Upload with full size text
     const dlBps = hwMetrics.net_download_bps || 0;
     const ulBps = hwMetrics.net_upload_bps || 0;
-    const dlFraction = Math.min(1, dlBps / (10 * 1024 * 1024));
-    const ulFraction = Math.min(1, ulBps / (10 * 1024 * 1024));
-
-    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
-    if(dlFraction > 0.005){
-      inner += svgArc(25, dlFraction, '#38bdf8', 5);
-    }
-    if(ulFraction > 0.005){
-      inner += svgArc(19, ulFraction, '#c084fc', 2.8);
-    }
-    svg.innerHTML = inner;
-
     const dlText = formatSpeedCompact(hwMetrics.net_download_speed);
     const ulText = formatSpeedCompact(hwMetrics.net_upload_speed);
-    pct.innerHTML = `<div class="hw-dual-net"><span style="color:#38bdf8">↓${dlText}</span><span style="color:#c084fc">↑${ulText}</span></div>`;
+
+    // Determine whether to show upload or download
+    let showUpload = (Math.floor(Date.now() / 2500) % 2) === 1;
+    // If one direction has clear traffic (> 8KB/s) and other is idle, prioritize the active one
+    if(dlBps > 8192 && ulBps < 1536) showUpload = false;
+    else if(ulBps > 8192 && dlBps < 1536) showUpload = true;
+
+    let activeGlyphSvg = SVG_NET;
+    if(showUpload){
+      val = Math.min(1, ulBps / (10 * 1024 * 1024));
+      arcColor = '#c084fc';
+      text = `<span style="color:#c084fc">↑${ulText}</span>`;
+      activeGlyphSvg = SVG_NET_UP;
+    } else {
+      val = Math.min(1, dlBps / (10 * 1024 * 1024));
+      arcColor = '#38bdf8';
+      text = `<span style="color:#38bdf8">↓${dlText}</span>`;
+      activeGlyphSvg = SVG_NET_DOWN;
+    }
+
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+    svg.innerHTML = inner;
+    pct.innerHTML = text;
+    glyph.innerHTML = `<span class="mark" title="${textCopy('Scroll to cycle Download / Upload')}">${activeGlyphSvg}</span>`;
+    glyph.classList.remove('dim');
+    wrap.classList.remove('dim');
+    return;
   } else if(hwRingMetric === 'net_down'){
     const bps = hwMetrics.net_download_bps || 0;
     val = Math.min(1, bps / (10 * 1024 * 1024));
@@ -1177,6 +1192,10 @@ function renderHardwareCell(cell, svg, pct, glyph, wrap){
     svg.innerHTML = inner;
     const dlText = formatSpeedCompact(hwMetrics.net_download_speed);
     pct.innerHTML = `<span style="color:#38bdf8">↓${dlText}</span>`;
+    glyph.innerHTML = `<span class="mark" title="${textCopy('Network (Download)')}">${SVG_NET_DOWN}</span>`;
+    glyph.classList.remove('dim');
+    wrap.classList.remove('dim');
+    return;
   } else if(hwRingMetric === 'net_up'){
     const bps = hwMetrics.net_upload_bps || 0;
     val = Math.min(1, bps / (10 * 1024 * 1024));
@@ -1186,6 +1205,10 @@ function renderHardwareCell(cell, svg, pct, glyph, wrap){
     svg.innerHTML = inner;
     const ulText = formatSpeedCompact(hwMetrics.net_upload_speed);
     pct.innerHTML = `<span style="color:#c084fc">↑${ulText}</span>`;
+    glyph.innerHTML = `<span class="mark" title="${textCopy('Network (Upload)')}">${SVG_NET_UP}</span>`;
+    glyph.classList.remove('dim');
+    wrap.classList.remove('dim');
+    return;
   } else if(hwRingMetric === 'daily'){
     const bytes = hwMetrics.daily_download_bytes || 0;
     val = Math.min(1, bytes / (5 * 1024 * 1024 * 1024)); // 0..5GB scale

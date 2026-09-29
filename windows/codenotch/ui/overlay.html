@@ -173,6 +173,20 @@
   /* ==========================================================================
      Windows 11 Native Fluent Context Menu & Cascading Submenus
      ========================================================================== */
+  #ctx-backdrop {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9998;
+    display: none;
+    background: transparent;
+    cursor: default;
+  }
+  #ctx-backdrop.show {
+    display: block;
+  }
+
   #ctx-menu {
     position: fixed;
     display: none;
@@ -462,6 +476,9 @@
   </div>
 </div>
 
+<!-- Backdrop to dismiss context menu when clicking outside anywhere in the window -->
+<div id="ctx-backdrop"></div>
+
 <!-- Windows 11 Native Fluent Context Menu & Cascading Submenus -->
 <div id="ctx-menu" class="no-drag">
   <!-- Visible Metrics (Submenu) -->
@@ -534,16 +551,10 @@
         </div>
       </div>
       <div class="win-menu-divider"></div>
-      <div class="win-menu-item" id="btn-metrics-all">
+      <div class="win-menu-item" id="btn-metrics-toggle-all">
         <div class="win-menu-left">
-          <span class="win-check-empty"></span>
-          <span>Select All</span>
-        </div>
-      </div>
-      <div class="win-menu-item" id="btn-metrics-none">
-        <div class="win-menu-left">
-          <span class="win-check-empty"></span>
-          <span>Deselect All</span>
+          <span class="win-check" id="chk-toggle-all">✓</span>
+          <span id="lbl-toggle-all">Select All</span>
         </div>
       </div>
     </div>
@@ -809,6 +820,7 @@
   // Elements
   const osdWrap = document.getElementById('osd-wrap');
   const ctxMenu = document.getElementById('ctx-menu');
+  const ctxBackdrop = document.getElementById('ctx-backdrop');
   const toastBadge = document.getElementById('toast-badge');
 
   const lineFps = document.getElementById('line-fps');
@@ -887,6 +899,21 @@
     updateMetricCheck('net', osdCfg.show_net);
     updateMetricCheck('day', osdCfg.show_day);
     updateMetricCheck('app', osdCfg.show_app);
+
+    // Update Select All / Unselect All state
+    const allMetricKeys = ['fps','low','gpu','vram','cpu','ram','page','net','day','app'];
+    const allSelected = allMetricKeys.every(k => !!osdCfg['show_' + k]);
+    const chkToggleAll = document.getElementById('chk-toggle-all');
+    const lblToggleAll = document.getElementById('lbl-toggle-all');
+    if(chkToggleAll && lblToggleAll){
+      if(allSelected){
+        chkToggleAll.textContent = '✕';
+        lblToggleAll.textContent = 'Unselect All';
+      } else {
+        chkToggleAll.textContent = '✓';
+        lblToggleAll.textContent = 'Select All';
+      }
+    }
 
     // Font size preset checks
     [9, 11, 12, 14, 16, 18].forEach(sz => {
@@ -1112,6 +1139,7 @@
   // Context Menu Management (Exclusively opened via right-click)
   function showContextMenu(clientX, clientY){
     adjustWindowSize(true);
+    if(ctxBackdrop) ctxBackdrop.classList.add('show');
     ctxMenu.classList.add('show');
 
     // Smart positioning so context menu stays inside viewport
@@ -1146,7 +1174,22 @@
   function hideContextMenu(){
     if(!ctxMenu.classList.contains('show')) return;
     ctxMenu.classList.remove('show');
+    if(ctxBackdrop) ctxBackdrop.classList.remove('show');
     adjustWindowSize(false);
+  }
+
+  // Dismiss context menu on any outside interaction
+  if(ctxBackdrop){
+    ctxBackdrop.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      hideContextMenu();
+    });
+    ctxBackdrop.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      hideContextMenu();
+    });
   }
 
   window.addEventListener('contextmenu', e => {
@@ -1154,11 +1197,32 @@
     showContextMenu(e.clientX, e.clientY);
   });
 
+  // Capture phase pointerdown ensures clicking anywhere outside closes the menu
+  window.addEventListener('pointerdown', e => {
+    if(ctxMenu.classList.contains('show') && !e.target.closest('#ctx-menu')){
+      hideContextMenu();
+    }
+  }, true);
+
   window.addEventListener('click', e => {
     if(!e.target.closest('#ctx-menu')){
       hideContextMenu();
     }
   });
+
+  // When window loses focus (clicked outside on desktop or another app), close immediately
+  window.addEventListener('blur', () => {
+    hideContextMenu();
+  });
+
+  try {
+    const curW = getTauriWindow();
+    if(curW && typeof curW.listen === 'function'){
+      curW.listen('tauri://blur', () => {
+        hideContextMenu();
+      }).catch(()=>{});
+    }
+  } catch(e){}
 
   // Escape key closes context menu or hides HUD
   window.addEventListener('keydown', e => {
@@ -1217,24 +1281,17 @@
       return;
     }
 
-    // Select All Metrics
-    if(e.target.closest('#btn-metrics-all')){
+    // Toggle Select All / Unselect All
+    if(e.target.closest('#btn-metrics-toggle-all')){
       e.stopPropagation();
-      ['fps','low','gpu','vram','cpu','ram','page','net','day','app'].forEach(k => {
-        osdCfg['show_' + k] = true;
-      });
-      applyOsdVisuals();
-      saveOsdCfg();
-      return;
-    }
-
-    // Deselect All Metrics (keep FPS)
-    if(e.target.closest('#btn-metrics-none')){
-      e.stopPropagation();
-      ['low','gpu','vram','cpu','ram','page','net','day','app'].forEach(k => {
-        osdCfg['show_' + k] = false;
-      });
-      osdCfg.show_fps = true;
+      const allMetricKeys = ['fps','low','gpu','vram','cpu','ram','page','net','day','app'];
+      const allSelected = allMetricKeys.every(k => !!osdCfg['show_' + k]);
+      if(allSelected){
+        allMetricKeys.forEach(k => { osdCfg['show_' + k] = false; });
+        osdCfg.show_fps = true;
+      } else {
+        allMetricKeys.forEach(k => { osdCfg['show_' + k] = true; });
+      }
       applyOsdVisuals();
       saveOsdCfg();
       return;
