@@ -430,10 +430,39 @@
     align-items: center;
     gap: 4px;
     color: var(--text-secondary, #cbd5e1);
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 2px 4px;
+    transition: background 0.12s ease, border-color 0.12s ease;
+    border: 1px solid transparent;
+  }
+  .hw-net-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .hw-net-item.sub-active {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #38bdf8;
   }
   .hw-net-item b {
     color: var(--text-primary, #ffffff);
     font-weight: 700;
+  }
+  .ring-dot {
+    display: inline-block;
+    color: #38bdf8;
+    font-size: 8px;
+    margin-left: 2px;
+  }
+  .hw-dual-net {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.08;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
   }
   .hw-app-badge {
     display: flex;
@@ -633,13 +662,15 @@ let hwMetrics = {
   timestamp: 0
 };
 let hwRingMetric = localStorage.getItem('codenotch.hw.ring_metric') || 'cpu';
-const HW_METRICS = ['cpu', 'ram', 'net', 'daily'];
+const HW_METRICS = ['cpu', 'ram', 'net', 'net_down', 'net_up', 'daily'];
 let hwConfig = { overlay_enabled: false, overlay_clickthrough: false };
 let hwPollTimer = null;
 
 const SVG_CPU = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><rect x="8" y="8" width="8" height="8" rx="1.5" fill="currentColor" fill-opacity="0.15"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/><circle cx="6.5" cy="6.5" r="0.75" fill="currentColor"/></svg>`;
 const SVG_RAM = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="1.5"/><rect x="4.5" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><rect x="8.5" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><rect x="13" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><rect x="17" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><line x1="5" y1="17" x2="5" y2="20"/><line x1="7.5" y1="17" x2="7.5" y2="20"/><line x1="10" y1="17" x2="10" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/><line x1="16.5" y1="17" x2="16.5" y2="20"/><line x1="19" y1="17" x2="19" y2="20"/></svg>`;
 const SVG_NET = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1.2" fill="currentColor"/></svg>`;
+const SVG_NET_DOWN = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><circle cx="12" cy="20" r="1.2" fill="#38bdf8"/><line x1="12" y1="12" x2="12" y2="17"/><polyline points="9.5 15 12 17.5 14.5 15"/></svg>`;
+const SVG_NET_UP = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><circle cx="12" cy="20" r="1.2" fill="#c084fc"/><line x1="12" y1="17" x2="12" y2="12"/><polyline points="9.5 14 12 11.5 14.5 14"/></svg>`;
 const SVG_ARROWS = SVG_NET; // backward compat alias
 const SVG_DAILY = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M8 12a4 4 0 0 1 8 0"/></svg>`;
 const SVG_GAME = `<svg class="stroke-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>`;
@@ -670,6 +701,18 @@ function cycleHwMetric(forward = true){
   if(card && card.classList.contains('show') && hoverId === 'hardware'){
     renderCard();
   }
+}
+
+function cycleNetMetric(forward = true){
+  const netMetrics = ['net', 'net_down', 'net_up'];
+  let idx = netMetrics.indexOf(hwRingMetric);
+  if(idx < 0) idx = 0;
+  if(forward){
+    idx = (idx + 1) % netMetrics.length;
+  } else {
+    idx = (idx - 1 + netMetrics.length) % netMetrics.length;
+  }
+  setHwRingMetric(netMetrics[idx]);
 }
 
 const AR_TEXT={
@@ -739,7 +782,13 @@ const AR_TEXT={
   'Today':'اليوم',
   'Cores':'أنوية',
   'Download':'تنزيل',
-  'Upload':'رفع'
+  'Upload':'رفع',
+  'Scroll to cycle Download / Upload':'مرر للتبديل بين التنزيل والرفع',
+  'Show download on notch ring':'تثبيت سرعة التنزيل على الأيقونة',
+  'Show upload on notch ring':'تثبيت سرعة الرفع على الأيقونة',
+  'Network (Download)':'الشبكة (تنزيل)',
+  'Network (Upload)':'الشبكة (رفع)',
+  'Network (Dual)':'الشبكة (تنزيل ورفع)'
 };
 const RU_TEXT={
   'Included usage':'Включённое использование',
@@ -803,7 +852,13 @@ const RU_TEXT={
   'Today':'Сегодня',
   'Cores':'ядер',
   'Download':'Загрузка',
-  'Upload':'Отдача'
+  'Upload':'Отдача',
+  'Scroll to cycle Download / Upload':'Прокрутите для смены Загрузка / Отдача',
+  'Show download on notch ring':'Показывать загрузку на кольце',
+  'Show upload on notch ring':'Показывать отдачу на кольце',
+  'Network (Download)':'Сеть (Загрузка)',
+  'Network (Upload)':'Сеть (Отдача)',
+  'Network (Dual)':'Сеть (Загрузка и Отдача)'
 };
 function textCopy(value){
   if(!value) return '';
@@ -921,6 +976,8 @@ function glyphHtml(p,small){
     let svgContent = SVG_CPU;
     if(hwRingMetric==='ram') svgContent = SVG_RAM;
     else if(hwRingMetric==='net') svgContent = SVG_NET;
+    else if(hwRingMetric==='net_down') svgContent = SVG_NET_DOWN;
+    else if(hwRingMetric==='net_up') svgContent = SVG_NET_UP;
     else if(hwRingMetric==='daily') svgContent = SVG_DAILY;
     return `<span class="mark" title="${textCopy('Scroll notch ring to cycle metric')}">${svgContent}</span>`;
   }
@@ -1062,6 +1119,13 @@ function renderRing(){
   reportHot(); // a provider appearing or leaving resizes the pill
 }
 
+function formatSpeedCompact(spdStr){
+  if(!spdStr) return '0K';
+  let clean = spdStr.replace('/s', '').trim().replace(/\s+/g, '');
+  clean = clean.replace('KB', 'K').replace('MB', 'M').replace('GB', 'G').replace('B', 'B');
+  return clean;
+}
+
 function renderHardwareCell(cell, svg, pct, glyph, wrap){
   let val = 0;
   let text = '—';
@@ -1072,29 +1136,68 @@ function renderHardwareCell(cell, svg, pct, glyph, wrap){
     val = cpu / 100;
     text = Math.round(cpu) + '%';
     arcColor = tone(val);
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+    svg.innerHTML = inner;
+    pct.textContent = text;
   } else if(hwRingMetric === 'ram'){
     const ram = hwMetrics.ram_usage_pct || 0;
     val = ram / 100;
     text = Math.round(ram) + '%';
     arcColor = tone(val);
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+    svg.innerHTML = inner;
+    pct.textContent = text;
   } else if(hwRingMetric === 'net'){
+    // Dual Network Mode: Display BOTH Download and Upload clearly with distinct arrows & colors
+    const dlBps = hwMetrics.net_download_bps || 0;
+    const ulBps = hwMetrics.net_upload_bps || 0;
+    const dlFraction = Math.min(1, dlBps / (10 * 1024 * 1024));
+    const ulFraction = Math.min(1, ulBps / (10 * 1024 * 1024));
+
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    if(dlFraction > 0.005){
+      inner += svgArc(25, dlFraction, '#38bdf8', 5);
+    }
+    if(ulFraction > 0.005){
+      inner += svgArc(19, ulFraction, '#c084fc', 2.8);
+    }
+    svg.innerHTML = inner;
+
+    const dlText = formatSpeedCompact(hwMetrics.net_download_speed);
+    const ulText = formatSpeedCompact(hwMetrics.net_upload_speed);
+    pct.innerHTML = `<div class="hw-dual-net"><span style="color:#38bdf8">↓${dlText}</span><span style="color:#c084fc">↑${ulText}</span></div>`;
+  } else if(hwRingMetric === 'net_down'){
     const bps = hwMetrics.net_download_bps || 0;
-    val = Math.min(1, bps / (10 * 1024 * 1024)); // 0..10MB/s scale
-    const spd = hwMetrics.net_download_speed || '0 KB/s';
-    text = spd.replace('/s','').replace(' ','');
+    val = Math.min(1, bps / (10 * 1024 * 1024));
     arcColor = '#38bdf8';
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+    svg.innerHTML = inner;
+    const dlText = formatSpeedCompact(hwMetrics.net_download_speed);
+    pct.innerHTML = `<span style="color:#38bdf8">↓${dlText}</span>`;
+  } else if(hwRingMetric === 'net_up'){
+    const bps = hwMetrics.net_upload_bps || 0;
+    val = Math.min(1, bps / (10 * 1024 * 1024));
+    arcColor = '#c084fc';
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+    svg.innerHTML = inner;
+    const ulText = formatSpeedCompact(hwMetrics.net_upload_speed);
+    pct.innerHTML = `<span style="color:#c084fc">↑${ulText}</span>`;
   } else if(hwRingMetric === 'daily'){
     const bytes = hwMetrics.daily_download_bytes || 0;
     val = Math.min(1, bytes / (5 * 1024 * 1024 * 1024)); // 0..5GB scale
     const dl = hwMetrics.daily_download_str || '0 MB';
     text = dl.replace(' ','');
     arcColor = '#c084fc';
+    let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+    svg.innerHTML = inner;
+    pct.textContent = text;
   }
 
-  let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
-  inner += svgArc(25, Math.min(val, 1), arcColor, 5);
-  svg.innerHTML = inner;
-  pct.textContent = text;
   glyph.innerHTML = glyphHtml({id: 'hardware', name: 'Hardware'}, false);
   glyph.classList.remove('dim');
   wrap.classList.remove('dim');
@@ -1351,14 +1454,24 @@ function renderHardwareCard(c){
       </div>
 
       <!-- Network Speeds Box -->
-      <div class="hw-metric-box ${hwRingMetric==='net'?'active-metric':''}" onclick="setHwRingMetric('net')" title="${textCopy('Scroll notch ring to cycle metric')}">
+      <div class="hw-metric-box ${hwRingMetric.startsWith('net')?'active-metric':''}" onclick="setHwRingMetric('net')" onwheel="event.preventDefault(); event.stopPropagation(); cycleNetMetric(event.deltaY > 0);" title="${textCopy('Scroll to cycle Download / Upload')}">
         <div class="hw-box-head">
-          <span>${SVG_NET} ${textCopy('Network')}</span>
-          <span class="hw-box-val" style="color:#38bdf8">↓ ${hwMetrics.net_download_speed}</span>
+          <span>${hwRingMetric==='net_down'?SVG_NET_DOWN:(hwRingMetric==='net_up'?SVG_NET_UP:SVG_NET)} ${textCopy('Network')}</span>
+          <span class="hw-box-val" style="font-size:11px;">
+            <span style="color:#38bdf8">↓ ${hwMetrics.net_download_speed}</span>
+            <span style="opacity:0.4;margin:0 2px;">·</span>
+            <span style="color:#c084fc">↑ ${hwMetrics.net_upload_speed}</span>
+          </span>
         </div>
         <div class="hw-net-grid">
-          <div class="hw-net-item"><span>↓ ${textCopy('Download')}:</span> <b>${hwMetrics.net_download_speed}</b></div>
-          <div class="hw-net-item"><span>↑ ${textCopy('Upload')}:</span> <b>${hwMetrics.net_upload_speed}</b></div>
+          <div class="hw-net-item ${hwRingMetric==='net_down'?'sub-active':''}" onclick="event.stopPropagation(); setHwRingMetric('net_down')" title="${textCopy('Show download on notch ring')}">
+            <span>↓ ${textCopy('Download')}:</span> <b>${hwMetrics.net_download_speed}</b>
+            ${hwRingMetric==='net_down' ? '<span class="ring-dot">●</span>' : ''}
+          </div>
+          <div class="hw-net-item ${hwRingMetric==='net_up'?'sub-active':''}" onclick="event.stopPropagation(); setHwRingMetric('net_up')" title="${textCopy('Show upload on notch ring')}">
+            <span>↑ ${textCopy('Upload')}:</span> <b>${hwMetrics.net_upload_speed}</b>
+            ${hwRingMetric==='net_up' ? '<span class="ring-dot">●</span>' : ''}
+          </div>
         </div>
       </div>
 

@@ -170,150 +170,174 @@
   .line-day .osd-val { color: var(--col-day); }
   .line-app .osd-val { color: var(--col-app); }
 
-  /* Ultra-Clean Modern OSD Settings Context Menu */
+  /* ==========================================================================
+     Windows 11 Native Fluent Context Menu & Cascading Submenus
+     ========================================================================== */
   #ctx-menu {
     position: fixed;
     display: none;
-    z-index: 1000;
-    background: rgba(13, 17, 23, 0.95);
-    backdrop-filter: blur(28px) saturate(190%);
-    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    z-index: 10000;
+    background: rgba(30, 30, 30, 0.94);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    padding: 10px 12px;
-    width: 246px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
-    font-size: 11px;
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.35);
+    padding: 4px;
+    min-width: 204px;
+    font-family: "Segoe UI Variable Text", "Segoe UI", -apple-system, system-ui, sans-serif;
+    font-size: 12px;
     color: #f1f5f9;
     user-select: none;
   }
 
   #ctx-menu.show {
     display: block;
-    animation: menuIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: winCtxIn 0.1s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  @keyframes menuIn {
+  @keyframes winCtxIn {
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
   }
 
-  .ctx-header {
+  .win-menu-item {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 7px;
-    margin-bottom: 7px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .ctx-title {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #38bdf8;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    letter-spacing: 0.01em;
-  }
-
-  .ctx-close-btn {
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    color: #94a3b8;
+    height: 30px;
+    padding: 0 10px 0 8px;
+    border-radius: 5px;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.05);
-    font-size: 10px;
-    transition: all 0.12s ease;
-  }
-  .ctx-close-btn:hover {
-    background: rgba(239, 68, 68, 0.8);
-    color: #fff;
-  }
-
-  .ctx-sec-title {
-    font-size: 9px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 5px 0 4px 0;
-  }
-
-  /* Compact 2-Column Metrics Pills */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    margin-bottom: 6px;
-  }
-
-  .metric-chip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 7px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.12s ease;
-    font-size: 10px;
-    color: #94a3b8;
-  }
-
-  .metric-chip:hover {
-    background: rgba(255, 255, 255, 0.09);
-    color: #f8fafc;
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .metric-chip.active {
-    background: rgba(56, 189, 248, 0.12);
-    border-color: rgba(56, 189, 248, 0.35);
+    transition: background 0.08s ease, color 0.08s ease;
     color: #e2e8f0;
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 11.5px;
   }
 
-  .metric-check {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    transition: all 0.15s ease;
-    flex-shrink: 0;
+  .win-menu-item:hover, .win-menu-item.active-parent {
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
   }
 
-  .metric-chip.active .metric-check {
-    background: #38bdf8;
-    box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+  .win-menu-item.warn-item:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
   }
 
-  /* Compact Font Size Row */
-  .ctx-row-slider {
+  .win-menu-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 6px;
-    padding: 4px 8px;
-    margin-bottom: 6px;
-  }
-
-  .ctx-slider-label {
-    font-size: 10px;
-    color: #94a3b8;
-    font-weight: 600;
+    gap: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .ctx-range-input {
+  .win-menu-icon {
+    width: 14px;
+    height: 14px;
+    color: #38bdf8;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .win-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #38bdf8;
+    flex-shrink: 0;
+  }
+
+  .win-check-empty {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .win-menu-arrow {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1;
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+
+  .win-menu-shortcut {
+    font-size: 10px;
+    color: #94a3b8;
+    font-family: 'Consolas', monospace;
+    margin-left: 14px;
+    flex-shrink: 0;
+  }
+
+  .win-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 4px 5px;
+  }
+
+  /* Cascading Flyout Submenus */
+  .win-submenu {
+    display: none;
+    position: absolute;
+    top: -4px;
+    left: 100%;
+    margin-left: 4px;
+    background: rgba(30, 30, 30, 0.96);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.4);
+    padding: 4px;
+    min-width: 185px;
+    max-height: 380px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 10010;
+  }
+
+  .win-submenu::-webkit-scrollbar { width: 4px; }
+  .win-submenu::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
+
+  .win-submenu.open-left {
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    margin-right: 4px;
+  }
+
+  .win-submenu.open-up {
+    top: auto;
+    bottom: -4px;
+  }
+
+  .has-submenu:hover > .win-submenu,
+  .has-submenu.open > .win-submenu {
+    display: block;
+    animation: winCtxIn 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .win-menu-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  .win-menu-slider {
     flex: 1;
     height: 4px;
     accent-color: #38bdf8;
@@ -321,115 +345,13 @@
     border-radius: 2px;
   }
 
-  .ctx-val-badge {
+  .win-menu-badge {
     font-size: 10.5px;
     font-weight: 700;
     font-family: Consolas, monospace;
     color: #38bdf8;
-    min-width: 26px;
+    min-width: 28px;
     text-align: right;
-  }
-
-  /* Segmented Controls for Opacity */
-  .seg-row {
-    display: flex;
-    gap: 3px;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    margin-bottom: 6px;
-  }
-
-  .seg-item {
-    flex: 1;
-    text-align: center;
-    padding: 3.5px 2px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 9.5px;
-    font-weight: 600;
-    color: #94a3b8;
-    transition: all 0.12s ease;
-    white-space: nowrap;
-  }
-
-  .seg-item:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .seg-item.active {
-    background: rgba(56, 189, 248, 0.18);
-    color: #38bdf8;
-    font-weight: 700;
-  }
-
-  /* Sleek Shortcut Action Rows */
-  .ctx-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 5px;
-    padding-top: 5px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .ctx-act-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5px 8px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: #cbd5e1;
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.12s ease;
-  }
-
-  .ctx-act-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.16);
-  }
-
-  .ctx-act-btn.active {
-    background: rgba(245, 158, 11, 0.15);
-    border-color: rgba(245, 158, 11, 0.4);
-    color: #fbbf24;
-  }
-
-  .ctx-act-btn.warn:hover {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-  }
-
-  .ctx-act-left {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .ctx-act-kbd {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .ctx-act-kbd kbd {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 3px;
-    padding: 1px 4px;
-    font-family: inherit;
-    font-size: 8.5px;
-    font-weight: 600;
-    color: #94a3b8;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
   }
 
   /* Right-docked alignment for clean right-edge appearance */
@@ -540,96 +462,241 @@
   </div>
 </div>
 
-<!-- Compact, Modern OSD Settings Menu -->
+<!-- Windows 11 Native Fluent Context Menu & Cascading Submenus -->
 <div id="ctx-menu" class="no-drag">
-  <div class="ctx-header">
-    <div class="ctx-title">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
-      <span>HUD Settings</span>
+  <!-- Visible Metrics (Submenu) -->
+  <div class="win-menu-item has-submenu" id="menu-item-metrics">
+    <div class="win-menu-left">
+      <svg class="win-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Visible Metrics</span>
     </div>
-    <div class="ctx-close-btn" id="ctx-btn-close-menu" title="Close">✕</div>
+    <span class="win-menu-arrow">›</span>
+
+    <div class="win-submenu" id="submenu-metrics">
+      <div class="win-menu-item" data-toggle="fps" title="Frames per second and frametime in ms">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-fps">✓</span>
+          <span>FPS & Frametime</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="low" title="1% Low and average framerate">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-low">✓</span>
+          <span>1% Low & Avg</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="gpu" title="GPU load, clock speed and temperature">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-gpu">✓</span>
+          <span>GPU & Clock</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="vram" title="Video RAM usage and percentage">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-vram">✓</span>
+          <span>VRAM Memory</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="cpu" title="CPU utilization, core count and temperature">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-cpu">✓</span>
+          <span>CPU & Temp</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="ram" title="System RAM usage in GB and percentage">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-ram">✓</span>
+          <span>RAM Memory</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="page" title="Windows virtual memory / pagefile commit">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-page">✓</span>
+          <span>Pagefile Commit</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="net" title="Live internet download and upload speed">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-net">✓</span>
+          <span>Live Network</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="day" title="Total downloaded and uploaded data today">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-day">✓</span>
+          <span>Today's Data</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-toggle="app" title="Active foreground application or game title">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-app"></span>
+          <span>Game Title</span>
+        </div>
+      </div>
+      <div class="win-menu-divider"></div>
+      <div class="win-menu-item" id="btn-metrics-all">
+        <div class="win-menu-left">
+          <span class="win-check-empty"></span>
+          <span>Select All</span>
+        </div>
+      </div>
+      <div class="win-menu-item" id="btn-metrics-none">
+        <div class="win-menu-left">
+          <span class="win-check-empty"></span>
+          <span>Deselect All</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Visible Metrics Compact Chips -->
-  <div class="ctx-sec-title">Visible Metrics</div>
-  <div class="metrics-grid">
-    <div class="metric-chip active" data-toggle="fps" title="Frames per second and frametime in ms">
-      <span>FPS & Frametime</span>
-      <span class="metric-check" id="chk-fps"></span>
+  <!-- Font Size (Submenu) -->
+  <div class="win-menu-item has-submenu" id="menu-item-font">
+    <div class="win-menu-left">
+      <svg class="win-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+      <span>Font Size</span>
     </div>
-    <div class="metric-chip active" data-toggle="low" title="1% Low and average framerate">
-      <span>1% Low & Avg</span>
-      <span class="metric-check" id="chk-low"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="gpu" title="GPU load, clock speed and temperature">
-      <span>GPU & Clock</span>
-      <span class="metric-check" id="chk-gpu"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="vram" title="Video RAM usage and percentage">
-      <span>VRAM Memory</span>
-      <span class="metric-check" id="chk-vram"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="cpu" title="CPU utilization, core count and temperature">
-      <span>CPU & Temp</span>
-      <span class="metric-check" id="chk-cpu"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="ram" title="System RAM usage in GB and percentage">
-      <span>RAM Memory</span>
-      <span class="metric-check" id="chk-ram"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="page" title="Windows virtual memory / pagefile commit">
-      <span>Pagefile Commit</span>
-      <span class="metric-check" id="chk-page"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="net" title="Live internet download and upload speed">
-      <span>Live Network</span>
-      <span class="metric-check" id="chk-net"></span>
-    </div>
-    <div class="metric-chip active" data-toggle="day" title="Total downloaded and uploaded data today">
-      <span>Today's Data</span>
-      <span class="metric-check" id="chk-day"></span>
-    </div>
-    <div class="metric-chip" data-toggle="app" title="Active foreground application or game title">
-      <span>Game Title</span>
-      <span class="metric-check" id="chk-app"></span>
+    <span class="win-menu-arrow">›</span>
+
+    <div class="win-submenu" id="submenu-font">
+      <div class="win-menu-item" data-size="9">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-font-9"></span>
+          <span>Small (9px)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-size="11">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-font-11"></span>
+          <span>Compact (11px)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-size="12">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-font-12">✓</span>
+          <span>Normal (12px)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-size="14">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-font-14"></span>
+          <span>Medium (14px)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-size="16">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-font-16"></span>
+          <span>Large (16px)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-size="18">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-font-18"></span>
+          <span>Extra Large (18px)</span>
+        </div>
+      </div>
+      <div class="win-menu-divider"></div>
+      <div class="win-menu-custom-row">
+        <span>Custom:</span>
+        <input type="range" class="win-menu-slider" id="ctx-font-range" min="9" max="24" value="12" title="Drag to adjust font size">
+        <span class="win-menu-badge" id="ctx-font-val">12px</span>
+      </div>
     </div>
   </div>
 
-  <!-- Appearance -->
-  <div class="ctx-sec-title">Font Size</div>
-  <div class="ctx-row-slider">
-    <span class="ctx-slider-label">Size</span>
-    <input type="range" class="ctx-range-input" id="ctx-font-range" min="9" max="24" value="12" title="Drag to adjust HUD font size">
-    <span class="ctx-val-badge" id="ctx-font-val">12px</span>
+  <!-- Background Tint (Submenu) -->
+  <div class="win-menu-item has-submenu" id="menu-item-tint">
+    <div class="win-menu-left">
+      <svg class="win-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+      <span>Background Tint</span>
+    </div>
+    <span class="win-menu-arrow">›</span>
+
+    <div class="win-submenu" id="submenu-tint">
+      <div class="win-menu-item" data-bg="0.0">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-bg-0">✓</span>
+          <span>0% Clear (Transparent)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-bg="0.25">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-bg-25"></span>
+          <span>25% Subtle Tint</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-bg="0.5">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-bg-50"></span>
+          <span>50% Semi-Dark</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-bg="0.75">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-bg-75"></span>
+          <span>75% Dark Backdrop</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="ctx-sec-title">Background Tint</div>
-  <div class="seg-row">
-    <div class="seg-item active" data-bg="0.0">0% Clear</div>
-    <div class="seg-item" data-bg="0.25">25% Tint</div>
-    <div class="seg-item" data-bg="0.5">50% Dark</div>
+  <!-- Color Theme (Submenu) -->
+  <div class="win-menu-item has-submenu" id="menu-item-theme">
+    <div class="win-menu-left">
+      <svg class="win-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 0 7 7c0 2-2 3-2 3s.5 2-1 3-3 0-4 1-2 2-2 4"/></svg>
+      <span>Color Theme</span>
+    </div>
+    <span class="win-menu-arrow">›</span>
+
+    <div class="win-submenu" id="submenu-theme">
+      <div class="win-menu-item" data-theme="classic">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-theme-classic">✓</span>
+          <span>MSI Classic (Orange / Cyan)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-theme="cyber">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-theme-cyber"></span>
+          <span>Cyber Neon (Green / Pink)</span>
+        </div>
+      </div>
+      <div class="win-menu-item" data-theme="mono">
+        <div class="win-menu-left">
+          <span class="win-check" id="chk-theme-mono"></span>
+          <span>Monochromatic (Clean White)</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Action Controls with Elegant Badges -->
-  <div class="ctx-actions">
-    <button class="ctx-act-btn" id="ctx-btn-lock" title="Toggle click-through mode">
-      <div class="ctx-act-left">
-        <span id="ctx-lock-icon">📌</span>
-        <span id="ctx-lock-label">Lock Click-thru</span>
-      </div>
-      <div class="ctx-act-kbd">
-        <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>L</kbd>
-      </div>
-    </button>
-    <button class="ctx-act-btn warn" id="ctx-btn-hide" title="Hide overlay HUD">
-      <div class="ctx-act-left">
-        <span>✕</span>
-        <span>Hide HUD</span>
-      </div>
-      <div class="ctx-act-kbd">
-        <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>H</kbd>
-      </div>
-    </button>
+  <div class="win-menu-divider"></div>
+
+  <!-- Lock Click-thru -->
+  <div class="win-menu-item" id="ctx-btn-lock" title="Toggle click-through mode">
+    <div class="win-menu-left">
+      <span class="win-check" id="chk-lock"></span>
+      <span id="ctx-lock-label">Lock Click-thru</span>
+    </div>
+    <span class="win-menu-shortcut">Ctrl+Alt+L</span>
+  </div>
+
+  <!-- Hide HUD -->
+  <div class="win-menu-item warn-item" id="ctx-btn-hide" title="Hide overlay HUD">
+    <div class="win-menu-left">
+      <span class="win-check-empty">✕</span>
+      <span>Hide HUD</span>
+    </div>
+    <span class="win-menu-shortcut">Ctrl+Alt+H</span>
+  </div>
+
+  <div class="win-menu-divider"></div>
+
+  <!-- Reset Defaults -->
+  <div class="win-menu-item" id="ctx-btn-reset" title="Reset HUD to default settings">
+    <div class="win-menu-left">
+      <span class="win-check-empty">↺</span>
+      <span>Reset HUD Defaults</span>
+    </div>
   </div>
 </div>
 
@@ -804,33 +871,27 @@
     document.documentElement.style.setProperty('--osd-font-size', osdCfg.fontSize + 'px');
     document.documentElement.style.setProperty('--osd-bg-opacity', Math.max(0.001, osdCfg.bgOpacity));
 
-    // Update Context Menu Metric Chips
-    const updateChip = (key, on) => {
-      const chip = document.querySelector(`.metric-chip[data-toggle="${key}"]`);
-      const chk = document.getElementById(`chk-${key}`);
-      if(chip) chip.classList.toggle('active', on);
+    // Update Context Menu Checkmarks for Metrics
+    const updateMetricCheck = (key, on) => {
+      const chk = document.getElementById('chk-' + key);
       if(chk) chk.textContent = on ? '✓' : '';
     };
 
-    updateChip('fps', osdCfg.show_fps);
-    updateChip('low', osdCfg.show_low);
-    updateChip('gpu', osdCfg.show_gpu);
-    updateChip('vram', osdCfg.show_vram);
-    updateChip('cpu', osdCfg.show_cpu);
-    updateChip('ram', osdCfg.show_ram);
-    updateChip('page', osdCfg.show_page);
-    updateChip('net', osdCfg.show_net);
-    updateChip('day', osdCfg.show_day);
-    updateChip('app', osdCfg.show_app);
+    updateMetricCheck('fps', osdCfg.show_fps);
+    updateMetricCheck('low', osdCfg.show_low);
+    updateMetricCheck('gpu', osdCfg.show_gpu);
+    updateMetricCheck('vram', osdCfg.show_vram);
+    updateMetricCheck('cpu', osdCfg.show_cpu);
+    updateMetricCheck('ram', osdCfg.show_ram);
+    updateMetricCheck('page', osdCfg.show_page);
+    updateMetricCheck('net', osdCfg.show_net);
+    updateMetricCheck('day', osdCfg.show_day);
+    updateMetricCheck('app', osdCfg.show_app);
 
-    // Segmented theme
-    document.querySelectorAll('.seg-item[data-theme]').forEach(el => {
-      el.classList.toggle('active', el.dataset.theme === osdCfg.theme);
-    });
-
-    // Segmented font size
-    document.querySelectorAll('.seg-item[data-size]').forEach(el => {
-      el.classList.toggle('active', Number(el.dataset.size) === osdCfg.fontSize);
+    // Font size preset checks
+    [9, 11, 12, 14, 16, 18].forEach(sz => {
+      const chk = document.getElementById('chk-font-' + sz);
+      if(chk) chk.textContent = (osdCfg.fontSize === sz) ? '✓' : '';
     });
 
     // Font inputs sync
@@ -839,20 +900,24 @@
     if(inpRng && document.activeElement !== inpRng) inpRng.value = osdCfg.fontSize;
     if(valBadge) valBadge.textContent = osdCfg.fontSize + 'px';
 
-    // Segmented background shade
-    document.querySelectorAll('.seg-item[data-bg]').forEach(el => {
-      el.classList.toggle('active', Number(el.dataset.bg) === osdCfg.bgOpacity);
+    // Tint checks
+    const tintMap = { '0': 0.0, '25': 0.25, '50': 0.5, '75': 0.75 };
+    for(const [id, val] of Object.entries(tintMap)){
+      const chk = document.getElementById('chk-bg-' + id);
+      if(chk) chk.textContent = (Math.abs(osdCfg.bgOpacity - val) < 0.05) ? '✓' : '';
+    }
+
+    // Theme checks
+    ['classic', 'cyber', 'mono'].forEach(th => {
+      const chk = document.getElementById('chk-theme-' + th);
+      if(chk) chk.textContent = (osdCfg.theme === th || (!osdCfg.theme && th === 'classic')) ? '✓' : '';
     });
 
-    // Context menu lock button active state
-    const btnLock = document.getElementById('ctx-btn-lock');
-    const lockIcon = document.getElementById('ctx-lock-icon');
+    // Lock checkmark
+    const chkLock = document.getElementById('chk-lock');
     const lockLabel = document.getElementById('ctx-lock-label');
-    if(btnLock){
-      btnLock.classList.toggle('active', osdCfg.clickthrough);
-      if(lockIcon) lockIcon.textContent = osdCfg.clickthrough ? '🔓' : '📌';
-      if(lockLabel) lockLabel.textContent = osdCfg.clickthrough ? 'Unlock Click' : 'Lock Click-thru';
-    }
+    if(chkLock) chkLock.textContent = osdCfg.clickthrough ? '✓' : '';
+    if(lockLabel) lockLabel.textContent = osdCfg.clickthrough ? 'Click-thru Locked' : 'Lock Click-thru';
 
     // Auto-fit window size tightly to content when menu is closed
     if(!ctxMenu.classList.contains('show')){
@@ -864,7 +929,7 @@
   let lastReportedH = 0;
   function adjustWindowSize(isMenuOpen = false){
     if(isMenuOpen){
-      invoke('resize_overlay_window', { width: 265, height: 350 }).catch(()=>{});
+      invoke('resize_overlay_window', { width: 520, height: 480 }).catch(()=>{});
       return;
     }
     const wrap = document.getElementById('osd-wrap');
@@ -1048,8 +1113,34 @@
   function showContextMenu(clientX, clientY){
     adjustWindowSize(true);
     ctxMenu.classList.add('show');
-    ctxMenu.style.left = '8px';
-    ctxMenu.style.top = '8px';
+
+    // Smart positioning so context menu stays inside viewport
+    const menuW = 210;
+    const menuH = ctxMenu.offsetHeight || 220;
+    let x = clientX;
+    let y = clientY;
+
+    if(x + menuW > window.innerWidth){
+      x = Math.max(4, window.innerWidth - menuW - 8);
+    }
+    if(y + menuH > window.innerHeight){
+      y = Math.max(4, window.innerHeight - menuH - 8);
+    }
+
+    ctxMenu.style.left = x + 'px';
+    ctxMenu.style.top = y + 'px';
+
+    // Check boundaries for submenus
+    document.querySelectorAll('.win-submenu').forEach(sub => {
+      sub.classList.remove('open-left', 'open-up');
+    });
+
+    if(x > 210){
+      document.querySelectorAll('.win-submenu').forEach(sub => sub.classList.add('open-left'));
+    }
+    if(y > 200){
+      document.querySelectorAll('.win-submenu').forEach(sub => sub.classList.add('open-up'));
+    }
   }
 
   function hideContextMenu(){
@@ -1108,43 +1199,111 @@
     }).catch(()=>{});
   }
 
-  document.getElementById('ctx-btn-close-menu').addEventListener('click', e => {
-    e.stopPropagation();
-    hideContextMenu();
-  });
-
   // Context Menu Item Click Handling
   ctxMenu.addEventListener('click', async e => {
-    const item = e.target.closest('[data-toggle], [data-snap], [data-margin], [data-theme], [data-size], [data-bg], #ctx-btn-lock, #ctx-btn-hide');
-    if(!item) return;
+    // Range input slider
+    if(e.target.tagName === 'INPUT' || e.target.closest('.win-menu-custom-row')){
+      return;
+    }
 
-    if(item.dataset.toggle){
-      const k = 'show_' + item.dataset.toggle;
+    // Toggle specific metric in submenu
+    const toggleItem = e.target.closest('[data-toggle]');
+    if(toggleItem){
+      e.stopPropagation();
+      const k = 'show_' + toggleItem.dataset.toggle;
       osdCfg[k] = !osdCfg[k];
       applyOsdVisuals();
       saveOsdCfg();
-    } else if(item.dataset.snap){
-      snapTo(item.dataset.snap, osdCfg.marginX);
-    } else if(item.dataset.margin !== undefined){
-      const m = Number(item.dataset.margin);
-      snapTo(osdCfg.dock, m);
-    } else if(item.dataset.theme){
-      osdCfg.theme = item.dataset.theme;
+      return;
+    }
+
+    // Select All Metrics
+    if(e.target.closest('#btn-metrics-all')){
+      e.stopPropagation();
+      ['fps','low','gpu','vram','cpu','ram','page','net','day','app'].forEach(k => {
+        osdCfg['show_' + k] = true;
+      });
       applyOsdVisuals();
       saveOsdCfg();
-    } else if(item.dataset.size){
-      setOsdFontSize(item.dataset.size);
-    } else if(item.dataset.bg){
-      osdCfg.bgOpacity = Number(item.dataset.bg);
+      return;
+    }
+
+    // Deselect All Metrics (keep FPS)
+    if(e.target.closest('#btn-metrics-none')){
+      e.stopPropagation();
+      ['low','gpu','vram','cpu','ram','page','net','day','app'].forEach(k => {
+        osdCfg['show_' + k] = false;
+      });
+      osdCfg.show_fps = true;
       applyOsdVisuals();
       saveOsdCfg();
-    } else if(item.id === 'ctx-btn-lock'){
+      return;
+    }
+
+    // Font size preset
+    const sizeItem = e.target.closest('[data-size]');
+    if(sizeItem){
+      e.stopPropagation();
+      setOsdFontSize(sizeItem.dataset.size);
+      return;
+    }
+
+    // Background tint
+    const bgItem = e.target.closest('[data-bg]');
+    if(bgItem){
+      e.stopPropagation();
+      osdCfg.bgOpacity = Number(bgItem.dataset.bg);
+      applyOsdVisuals();
+      saveOsdCfg();
+      return;
+    }
+
+    // Color Theme
+    const themeItem = e.target.closest('[data-theme]');
+    if(themeItem){
+      e.stopPropagation();
+      osdCfg.theme = themeItem.dataset.theme;
+      applyOsdVisuals();
+      saveOsdCfg();
+      return;
+    }
+
+    // Lock click-thru
+    if(e.target.closest('#ctx-btn-lock')){
       hideContextMenu();
       const nextCt = !osdCfg.clickthrough;
       invoke('set_overlay_clickthrough', { clickthrough: nextCt }).catch(()=>{});
-    } else if(item.id === 'ctx-btn-hide'){
+      return;
+    }
+
+    // Hide HUD
+    if(e.target.closest('#ctx-btn-hide')){
       hideContextMenu();
       invoke('toggle_overlay', { show: false }).catch(()=>{});
+      return;
+    }
+
+    // Reset Defaults
+    if(e.target.closest('#ctx-btn-reset')){
+      hideContextMenu();
+      osdCfg.show_fps = true;
+      osdCfg.show_low = true;
+      osdCfg.show_gpu = true;
+      osdCfg.show_vram = true;
+      osdCfg.show_cpu = true;
+      osdCfg.show_ram = true;
+      osdCfg.show_page = true;
+      osdCfg.show_net = true;
+      osdCfg.show_day = true;
+      osdCfg.show_app = false;
+      osdCfg.fontSize = 12;
+      osdCfg.theme = 'classic';
+      osdCfg.bgOpacity = 0.001;
+      osdCfg.clickthrough = false;
+      applyOsdVisuals();
+      saveOsdCfg();
+      showToast('HUD Reset to Defaults');
+      return;
     }
   });
 
@@ -1153,14 +1312,10 @@
     window.__TAURI__.event.listen('overlay_clickthrough_state', e => {
       const isLocked = !!e.payload;
       osdCfg.clickthrough = isLocked;
-      const btnLock = document.getElementById('ctx-btn-lock');
-      const lockIcon = document.getElementById('ctx-lock-icon');
+      const chkLock = document.getElementById('chk-lock');
       const lockLabel = document.getElementById('ctx-lock-label');
-      if(btnLock){
-        btnLock.classList.toggle('active', isLocked);
-        if(lockIcon) lockIcon.textContent = isLocked ? '🔓' : '📌';
-        if(lockLabel) lockLabel.textContent = isLocked ? 'Unlock Click' : 'Lock Click-thru';
-      }
+      if(chkLock) chkLock.textContent = isLocked ? '✓' : '';
+      if(lockLabel) lockLabel.textContent = isLocked ? 'Click-thru Locked' : 'Lock Click-thru';
       if(isLocked){
         showToast('🔒 Click-Through LOCKED (Ctrl+Alt+L to Unlock)');
       } else {
