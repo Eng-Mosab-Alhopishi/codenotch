@@ -2,6 +2,11 @@
 members = ["codenotch", "codenotch-hook"]
 resolver = "2"
 
+[profile.dev]
+opt-level = 0
+debug = 1
+incremental = false
+
 [profile.release]
 lto = true
 codegen-units = 1

@@ -305,7 +305,7 @@ pub mod win_backdrop {
         #[link(name = "kernel32")]
         extern "system" {
             fn GetModuleHandleA(lpModuleName: *const u8) -> *mut c_void;
-            fn GetProcAddress(hModule: *mut c_void, lpProcName: *const u8) -> *const c_void;
+            fn GetProcAddress(hModule: *mut c_void, lpProcName: *const u8) -> *mut c_void;
         }
         let h_user32 = GetModuleHandleA(b"user32.dll\0".as_ptr());
         if h_user32.is_null() {
@@ -322,7 +322,7 @@ pub mod win_backdrop {
         #[link(name = "kernel32")]
         extern "system" {
             fn LoadLibraryA(lpLibFileName: *const u8) -> *mut c_void;
-            fn GetProcAddress(hModule: *mut c_void, lpProcName: *const u8) -> *const c_void;
+            fn GetProcAddress(hModule: *mut c_void, lpProcName: *const u8) -> *mut c_void;
         }
         let h_dwmapi = LoadLibraryA(b"dwmapi.dll\0".as_ptr());
         if h_dwmapi.is_null() {
@@ -632,24 +632,24 @@ fn check_dark_mode() -> Option<bool> {
     #[link(name = "advapi32")]
     extern "system" {
         fn RegOpenKeyExW(
-            hkey: isize,
+            hkey: usize,
             lpsubkey: *const u16,
             uloptions: u32,
             samdesired: u32,
-            phkresult: *mut isize,
+            phkresult: *mut usize,
         ) -> i32;
         fn RegQueryValueExW(
-            hkey: isize,
+            hkey: usize,
             lpvaluename: *const u16,
             lpreserved: *mut u32,
             lptype: *mut u32,
             lpdata: *mut u8,
             lpcbdata: *mut u32,
         ) -> i32;
-        fn RegCloseKey(hkey: isize) -> i32;
+        fn RegCloseKey(hkey: usize) -> i32;
     }
 
-    const HKEY_CURRENT_USER: isize = 0x8000_0001u32 as isize;
+    const HKEY_CURRENT_USER: usize = 0x8000_0001;
     const KEY_READ: u32 = 0x20019;
 
     let subkey: Vec<u16> = "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\0"
@@ -658,7 +658,7 @@ fn check_dark_mode() -> Option<bool> {
     let val_name: Vec<u16> = "AppsUseLightTheme\0".encode_utf16().collect();
 
     unsafe {
-        let mut hkey: isize = 0;
+        let mut hkey: usize = 0;
         if RegOpenKeyExW(HKEY_CURRENT_USER, subkey.as_ptr(), 0, KEY_READ, &mut hkey) != 0 {
             return None;
         }

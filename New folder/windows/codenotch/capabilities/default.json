@@ -1,0 +1,12 @@
+{
+  "identifier": "default",
+  "description": "Codenotch windows: allow core APIs, window dragging, and events",
+  "windows": ["notch", "settings", "overlay"],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size"
+  ]
+}

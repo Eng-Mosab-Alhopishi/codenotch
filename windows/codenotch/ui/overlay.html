@@ -166,7 +166,31 @@
   .line-cpu .osd-val { color: var(--col-cpu); }
   .line-ram .osd-val { color: var(--col-ram); }
   .line-page .osd-val { color: var(--col-page); }
-  .line-net .osd-val { color: var(--col-net); }
+  .line-net {
+    font-size: calc(var(--osd-font-size, 14px) * 1.14);
+    letter-spacing: 0.02em;
+  }
+  .line-net .osd-lbl {
+    font-weight: 800;
+  }
+  .line-net .osd-val {
+    color: var(--col-net, #00e676);
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-shadow: 
+      0 0 10px rgba(0, 230, 118, 0.45),
+      1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  }
+  .line-net .osd-sub {
+    color: #38bdf8;
+    font-weight: 800;
+    font-size: 0.95em;
+    margin-left: 8px;
+    letter-spacing: 0.03em;
+    text-shadow: 
+      0 0 10px rgba(56, 189, 248, 0.45),
+      1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  }
   .line-day .osd-val { color: var(--col-day); }
   .line-app .osd-val { color: var(--col-app); }
 
@@ -307,33 +331,34 @@
     top: -4px;
     left: 100%;
     margin-left: 4px;
-    background: rgba(30, 30, 30, 0.96);
+    background: rgba(26, 26, 28, 0.96);
     backdrop-filter: blur(32px) saturate(180%);
     -webkit-backdrop-filter: blur(32px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 8px;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.45);
     padding: 4px;
-    min-width: 185px;
-    max-height: 380px;
+    min-width: 228px;
+    max-height: 420px;
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 10010;
+    white-space: nowrap;
   }
 
   .win-submenu::-webkit-scrollbar { width: 4px; }
   .win-submenu::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
 
   .win-submenu.open-left {
-    left: auto;
-    right: 100%;
-    margin-left: 0;
-    margin-right: 4px;
+    left: auto !important;
+    right: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 4px !important;
   }
 
   .win-submenu.open-up {
-    top: auto;
-    bottom: -4px;
+    top: auto !important;
+    bottom: -4px !important;
   }
 
   .has-submenu:hover > .win-submenu,
@@ -956,7 +981,7 @@
   let lastReportedH = 0;
   function adjustWindowSize(isMenuOpen = false){
     if(isMenuOpen){
-      invoke('resize_overlay_window', { width: 520, height: 480 }).catch(()=>{});
+      invoke('resize_overlay_window', { width: 720, height: 600 }).catch(()=>{});
       return;
     }
     const wrap = document.getElementById('osd-wrap');
@@ -1143,33 +1168,68 @@
     ctxMenu.classList.add('show');
 
     // Smart positioning so context menu stays inside viewport
-    const menuW = 210;
-    const menuH = ctxMenu.offsetHeight || 220;
+    const menuW = 216;
+    const menuH = ctxMenu.offsetHeight || 260;
     let x = clientX;
     let y = clientY;
 
-    if(x + menuW > window.innerWidth){
-      x = Math.max(4, window.innerWidth - menuW - 8);
+    if(x + menuW > window.innerWidth - 8){
+      x = Math.max(8, window.innerWidth - menuW - 8);
     }
-    if(y + menuH > window.innerHeight){
-      y = Math.max(4, window.innerHeight - menuH - 8);
+    if(y + menuH > window.innerHeight - 8){
+      y = Math.max(8, window.innerHeight - menuH - 8);
     }
 
     ctxMenu.style.left = x + 'px';
     ctxMenu.style.top = y + 'px';
 
-    // Check boundaries for submenus
-    document.querySelectorAll('.win-submenu').forEach(sub => {
-      sub.classList.remove('open-left', 'open-up');
-    });
-
-    if(x > 210){
-      document.querySelectorAll('.win-submenu').forEach(sub => sub.classList.add('open-left'));
-    }
-    if(y > 200){
-      document.querySelectorAll('.win-submenu').forEach(sub => sub.classList.add('open-up'));
-    }
+    // Check boundaries for submenus based on available screen space
+    updateAllSubmenusPosition(x, y);
   }
+
+  function updateAllSubmenusPosition(menuX, menuY){
+    const subW = 230;
+    const isDockRight = (osdCfg.dock || '').includes('right');
+    const preferLeft = (menuX > window.innerWidth - subW - 220) || (menuX > 220 && isDockRight);
+
+    document.querySelectorAll('.win-submenu').forEach(sub => {
+      if(preferLeft){
+        sub.classList.add('open-left');
+      } else {
+        sub.classList.remove('open-left');
+      }
+      if(menuY > 220){
+        sub.classList.add('open-up');
+      } else {
+        sub.classList.remove('open-up');
+      }
+    });
+  }
+
+  // Dynamic collision detection on submenu hover
+  document.querySelectorAll('.has-submenu').forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      const sub = item.querySelector('.win-submenu');
+      if(!sub) return;
+      const rect = item.getBoundingClientRect();
+      const subW = 230;
+      const spaceRight = window.innerWidth - rect.right;
+      const spaceLeft = rect.left;
+
+      if(spaceRight < subW + 10 && spaceLeft >= subW){
+        sub.classList.add('open-left');
+      } else if(spaceRight >= subW + 10){
+        sub.classList.remove('open-left');
+      }
+
+      const spaceBottom = window.innerHeight - rect.top;
+      if(spaceBottom < 260 && rect.bottom > 260){
+        sub.classList.add('open-up');
+      } else {
+        sub.classList.remove('open-up');
+      }
+    });
+  });
 
   function hideContextMenu(){
     if(!ctxMenu.classList.contains('show')) return;

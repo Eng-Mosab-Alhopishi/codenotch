@@ -1,0 +1,78 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Codenotch",
+  "version": "0.3.0",
+  "identifier": "com.immidi.codenotch",
+  "build": {
+    "frontendDist": "ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "notch",
+        "url": "notch.html",
+        "width": 360,
+        "height": 720,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "shadow": false,
+        "visible": false,
+        "focus": false
+      },
+      {
+        "label": "settings",
+        "url": "settings.html",
+        "title": "Codenotch Settings",
+        "width": 880,
+        "height": 650,
+        "minWidth": 540,
+        "minHeight": 520,
+        "resizable": true,
+        "decorations": true,
+        "backgroundColor": "#0a0a0a",
+        "visible": false,
+        "focus": false
+      },
+      {
+        "label": "overlay",
+        "url": "overlay.html",
+        "title": "CodeNotch Gaming HUD",
+        "width": 380,
+        "height": 380,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "shadow": false,
+        "visible": false,
+        "focus": false
+      },
+      {
+        "label": "welcome",
+        "url": "welcome.html",
+        "title": "Welcome to CodeNotch",
+        "width": 780,
+        "height": 580,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "center": true,
+        "visible": false,
+        "focus": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico"]
+  }
+}

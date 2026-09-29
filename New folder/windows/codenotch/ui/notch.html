@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  /* Visual reference: upstream docs/specs/2026-08-28-usage-notch-design.md, reproduced for Windows 11 */
+  :root {
+    --accent-rgb: 0, 120, 215;
+    --accent-hex: #0078d4;
+
+    /* Translucent Liquid & Frosted Glass Floating Cards (Base window is 100% transparent) */
+    --pill-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 35%, rgba(255, 255, 255, 0.02) 80%, rgba(255, 255, 255, 0.05) 100%), rgba(22, 26, 38, 0.54);
+    --pill-filter: blur(30px) saturate(180%) contrast(105%);
+    --pill-border: rgba(255, 255, 255, 0.28);
+    --pill-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.55), inset 0 -1px 1px rgba(255, 255, 255, 0.10), 0 16px 36px rgba(0, 0, 0, 0.45);
+    --pill-dock-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35);
+    --pill-shadow-left: inset 0 1.5px 1px rgba(255, 255, 255, 0.55), inset 0 -1px 1px rgba(255, 255, 255, 0.10), 0 16px 36px rgba(0, 0, 0, 0.45);
+    --pill-dock-shadow-left: inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35);
+    --pill-shadow-top: inset 0 1.5px 1px rgba(255, 255, 255, 0.55), inset 0 -1px 1px rgba(255, 255, 255, 0.10), 0 16px 36px rgba(0, 0, 0, 0.45);
+    --pill-dock-shadow-top: inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35);
+    --pill-hover-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.65), 0 20px 42px rgba(0, 0, 0, 0.50);
+    --pill-hover-border: rgba(255, 255, 255, 0.45);
+
+    /* Negative Fillets Synchronized Stops */
+    --fillet-base: rgba(22, 26, 38, 0.54);
+    --fillet-stroke: rgba(255, 255, 255, 0.28);
+
+    /* Expanded Details Card */
+    --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.05) 35%, rgba(255, 255, 255, 0.01) 80%, rgba(255, 255, 255, 0.05) 100%), rgba(22, 26, 38, 0.52);
+    --card-filter: blur(30px) saturate(180%) contrast(105%);
+    --card-border: rgba(255, 255, 255, 0.28);
+    --card-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.50), inset 0 -1px 1px rgba(255, 255, 255, 0.10), 0 24px 50px rgba(0, 0, 0, 0.50), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --card-tail-color: rgba(22, 26, 38, 0.52);
+    --card-divider: rgba(255, 255, 255, 0.12);
+
+    /* Context Menu */
+    --ctx-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 35%, rgba(255, 255, 255, 0.02) 100%), rgba(22, 26, 38, 0.72);
+    --ctx-filter: blur(30px) saturate(180%) contrast(105%);
+    --ctx-border: rgba(255, 255, 255, 0.25);
+    --ctx-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 18px 40px rgba(0, 0, 0, 0.45);
+    --ctx-hover: rgba(255, 255, 255, 0.15);
+
+    /* Typography & Contrast */
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-glyph: #f8fafc;
+    --text-note: #f1f5f9;
+    --text-reset: #f1f5f9;
+    --reset-badge-bg: rgba(255, 255, 255, 0.10);
+    --reset-badge-border: rgba(255, 255, 255, 0.18);
+    --track-bg: rgba(255, 255, 255, 0.14);
+    --note-bg: rgba(255, 255, 255, 0.08);
+    --note-border: rgba(255, 255, 255, 0.20);
+    --note-accent: #60a5fa;
+    --check-color: #60a5fa;
+  }
+  *{box-sizing:border-box} /* content-box padding once pushed the card past the window's left edge */
+  html,body{margin:0;padding:0;width:100%;height:100%;background:transparent !important;overflow:hidden;user-select:none}
+  body{font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:#fff}
+  #root{position:relative;width:100%;height:100%}
+
+  /* The pill on the right edge with Windows 11 FrostyGlass styling */
+  #pill{
+    position:absolute;right:0;top:50%;transform:translateY(-50%);
+    width:70px;padding:18px 0;
+    background:var(--pill-bg) !important;
+    backdrop-filter:var(--pill-filter, blur(30px) saturate(180%)) !important;
+    -webkit-backdrop-filter:var(--pill-filter, blur(30px) saturate(180%)) !important;
+    border-radius:20px 0 0 20px;
+    border:1px solid var(--pill-border) !important;border-right:none !important;
+    box-shadow:var(--pill-shadow) !important;
+    display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;
+    transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  #pill.docked{
+    transform:translateY(-50%) translateX(calc(70px - var(--autohide-peek, 14px)));
+    box-shadow:var(--pill-dock-shadow) !important;
+  }
+  #pill:hover,#pill.docked:hover{
+    box-shadow:var(--pill-hover-shadow) !important;
+    border-color:var(--pill-hover-border) !important;
+  }
+  /* Fillets: the concave arcs between the pill's top/bottom and the screen edge */
+  #pill::before,#pill::after{
+    content:"";position:absolute;right:0;width:var(--fillet);height:var(--fillet);pointer-events:none;
+  }
+  #pill{--fillet:26px}
+  #pill::before{
+    top:calc(-1 * var(--fillet));
+    background:radial-gradient(circle at 0 0, transparent calc(var(--fillet) - 1px), var(--fillet-stroke) calc(var(--fillet) - 0.5px), var(--fillet-base) var(--fillet)) !important;
+  }
+  #pill::after{
+    bottom:calc(-1 * var(--fillet));
+    background:radial-gradient(circle at 0 100%, transparent calc(var(--fillet) - 1px), var(--fillet-stroke) calc(var(--fillet) - 0.5px), var(--fillet-base) var(--fillet)) !important;
+  }
+
+  /* Left edge placement */
+  body.edge-left #pill{
+    right:auto;left:0;
+    border-radius:0 20px 20px 0;
+    border-left:none !important;border-right:1px solid var(--pill-border) !important;
+    box-shadow:var(--pill-shadow-left) !important;
+  }
+  body.edge-left #pill.docked{
+    transform:translateY(-50%) translateX(calc(-1 * (70px - var(--autohide-peek, 14px))));
+    box-shadow:var(--pill-dock-shadow-left) !important;
+  }
+  body.edge-left #pill::before{
+    right:auto;left:0;
+    background:radial-gradient(circle at 100% 0, transparent calc(var(--fillet) - 1px), var(--fillet-stroke) calc(var(--fillet) - 0.5px), var(--fillet-base) var(--fillet)) !important;
+  }
+  body.edge-left #pill::after{
+    right:auto;left:0;
+    background:radial-gradient(circle at 100% 100%, transparent calc(var(--fillet) - 1px), var(--fillet-stroke) calc(var(--fillet) - 0.5px), var(--fillet-base) var(--fillet)) !important;
+  }
+  body.edge-left #card{
+    left:80px;right:auto;margin-left:0;
+  }
+  body.edge-left #card::after{
+    left:-8px;right:auto;
+    border:8px solid transparent;border-left:none;border-right:10px solid var(--card-tail-color) !important;
+  }
+  body.edge-left #ctx-menu, body.edge-left .context-menu{
+    left:80px;right:auto;
+  }
+
+  /* Top edge placement */
+  body.edge-top #pill{
+    top:0;bottom:auto;left:50%;right:auto;
+    transform:translateX(-50%);
+    flex-direction:row;width:auto;height:86px;padding:6px 20px 8px;gap:18px;
+    border-radius:0 0 22px 22px;
+    border-top:none !important;border-bottom:1px solid var(--pill-border) !important;border-left:1px solid var(--pill-border) !important;border-right:1px solid var(--pill-border) !important;
+    box-shadow:var(--pill-shadow-top) !important;
+  }
+  body.edge-top #pill.docked{
+    transform:translateX(-50%) translateY(calc(-1 * (86px - var(--autohide-peek, 14px))));
+    box-shadow:var(--pill-dock-shadow-top) !important;
+  }
+  body.edge-top #pill::before{
+    top:0;bottom:auto;left:calc(-1 * var(--fillet));right:auto;
+    background:radial-gradient(circle at 0 100%, transparent calc(var(--fillet) - 1px), var(--fillet-stroke) calc(var(--fillet) - 0.5px), var(--fillet-base) var(--fillet)) !important;
+  }
+  body.edge-top #pill::after{
+    top:0;bottom:auto;right:calc(-1 * var(--fillet));left:auto;
+    background:radial-gradient(circle at 100% 100%, transparent calc(var(--fillet) - 1px), var(--fillet-stroke) calc(var(--fillet) - 0.5px), var(--fillet-base) var(--fillet)) !important;
+  }
+  body.edge-top #card{
+    top:96px;bottom:auto;left:50%;right:auto;
+    transform:translateX(-50%);margin-left:0;max-width:320px;
+  }
+  body.edge-top #card::after{
+    top:-8px;bottom:auto;left:var(--tail-x, 50%);right:auto;
+    transform:translateX(-50%);
+    border:8px solid transparent;border-top:none;border-bottom:10px solid var(--card-tail-color) !important;
+  }
+  body.edge-top #ctx-menu, body.edge-top .context-menu{
+    top:96px;bottom:auto;
+  }
+  body.edge-top #ctx-menu::before, body.edge-top .context-menu::before{
+    top:-22px;bottom:-10px;left:-10px;right:-10px;
+  }
+  body.edge-left #ctx-menu::before, body.edge-left .context-menu::before{
+    top:-10px;bottom:-10px;left:-22px;right:-10px;
+  }
+  .cell{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .ringwrap{position:relative;width:56px;height:56px}
+  .ringwrap > svg.ring{position:absolute;inset:0;overflow:visible}
+  .glyph{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:20px;font-weight:700;color:var(--text-glyph, #e8e8ea);letter-spacing:-.5px;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.7));
+  }
+  .glyph.small{font-size:15px}
+  .glyph img,.glyph svg{display:block;pointer-events:none;user-select:none}
+  .glyph .mark{display:block;width:26px;height:26px;color:var(--text-glyph, #e8e8ea)}
+  .glyph .mark svg{width:26px;height:26px;fill:currentColor}
+  .glyph .mark svg.stroke-icon, .c-head .mark svg.stroke-icon { fill:none !important; stroke:currentColor !important; }
+  .glyph img.png{width:26px;height:26px;object-fit:contain}
+  .glyph img.appicon{width:30px;height:30px;border-radius:8px;object-fit:cover}
+  .c-head .mark{display:inline-block;width:16px;height:16px;color:var(--text-primary, #ffffff);margin-right:2px}
+  .c-head .mark svg{width:16px;height:16px;fill:currentColor}
+  .pct{
+    font-size:14px;font-weight:700;color:var(--text-primary, #fff);font-variant-numeric:tabular-nums;
+    text-shadow:0 1px 3px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.7);
+  }
+  .dim{opacity:.55}
+  /* Session arc animation */
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .arc-spin{animation:spin 1.2s steps(12) infinite;transform-origin:center}
+  .arc-pulse{animation:pulse 1.1s steps(6) infinite}
+
+  /* Hover card, styled to Windows 11 FrostyGlass standards */
+  #card{
+    position:absolute;left:10px;right:80px;top:50%;transform:translateY(-50%);--tail:50%;
+    max-width:264px;margin-left:auto;
+    background:var(--card-bg) !important;
+    backdrop-filter:var(--card-filter, blur(30px) saturate(180%)) !important;
+    -webkit-backdrop-filter:var(--card-filter, blur(30px) saturate(180%)) !important;
+    border:1px solid var(--card-border) !important;
+    box-shadow:var(--card-shadow) !important;
+    border-radius:18px;padding:16px;
+    color:var(--text-primary, #ffffff);
+    overflow-wrap:anywhere;min-width:0;
+    max-height:calc(100% - 16px);
+    overflow-y:auto;overflow-x:hidden;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,0.2) transparent;
+    display:none;
+  }
+  #card::-webkit-scrollbar{width:4px}
+  #card::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.25);border-radius:2px}
+  #card.show{display:block}
+  #card::after{
+    content:"";position:absolute;right:-8px;top:var(--tail);transform:translateY(-50%);
+    border:8px solid transparent;border-right:none;border-left:10px solid var(--card-tail-color) !important;
+  }
+
+  /* OLED and Solid Dark theme overrides */
+  body.theme-oled #pill{
+    background:#000000 !important;
+    border:1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow:-4px 0 24px rgba(0, 0, 0, 0.95) !important;
+  }
+  body.theme-oled #card{
+    background:rgba(0, 0, 0, 0.96) !important;
+    border:1px solid rgba(255, 255, 255, 0.20) !important;
+    box-shadow:0 18px 40px rgba(0, 0, 0, 0.95) !important;
+  }
+  body.theme-oled #card::after{
+    border-left-color:#000000 !important;
+    border-right-color:#000000 !important;
+    border-bottom-color:#000000 !important;
+  }
+  body.theme-solid #pill{
+    background:#16161a !important;
+    border:1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow:-4px 0 20px rgba(0, 0, 0, 0.65) !important;
+  }
+  body.theme-solid #card{
+    background:#1a1a24 !important;
+    border:1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow:0 16px 36px rgba(0, 0, 0, 0.70) !important;
+  }
+  body.theme-solid #card::after{
+    border-left-color:#1a1a24 !important;
+    border-right-color:#1a1a24 !important;
+    border-bottom-color:#1a1a24 !important;
+  }
+  .c-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .c-title{font-size:14px;font-weight:700;color:var(--text-primary, #ffffff);text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+  .c-sub{font-size:11px;color:var(--text-muted, #94a3b8);margin-bottom:10px}
+  .win{margin-top:10px}
+  .w-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;flex-wrap:wrap;column-gap:8px;row-gap:3px}
+  .w-label{color:var(--text-primary, #f1f5f9);font-weight:600;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.4)}
+  .w-reset{
+    color:var(--text-reset, #cbd5e1);font-size:10.5px;font-weight:500;white-space:nowrap;margin-left:auto;
+    background:var(--reset-badge-bg, rgba(255,255,255,0.08));
+    border:1px solid var(--reset-badge-border, rgba(255,255,255,0.14));
+    border-radius:6px;padding:2px 7px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    letter-spacing:0.2px;
+  }
+  .w-track{height:4px;border-radius:2px;background:var(--track-bg, rgba(255,255,255,0.14));margin:6px 0 4px;overflow:hidden}
+  .w-fill{height:100%;border-radius:2px}
+  .w-used{font-size:11.5px;color:var(--text-secondary, #cbd5e1);font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.4)}
+  .c-note{
+    font-size:11.5px;
+    line-height:1.5;
+    margin-top:8px;
+    padding:8px 10px;
+    border-radius:9px;
+    background:var(--note-bg, rgba(255, 255, 255, 0.06));
+    border:1px solid var(--note-border, rgba(255, 255, 255, 0.14));
+    border-inline-start:3px solid var(--note-accent, var(--accent-hex, #0078d4));
+    color:var(--text-note, #f1f5f9);
+    box-shadow:0 1px 4px rgba(0,0,0,0.15);
+    text-shadow:0 1px 2px rgba(0,0,0,0.4);
+    overflow-wrap:anywhere;
+  }
+  /* Adaptive Telemetry & Metrics Card Styling */
+  .c-telemetry{
+    margin-top:10px;
+    padding:8px 10px;
+    border-radius:10px;
+    background:rgba(255, 255, 255, 0.05);
+    border:1px solid var(--card-divider, rgba(255,255,255,0.12));
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    font-size:11px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.15);
+  }
+  .c-telem-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:10px;
+    color:var(--text-muted, #94a3b8);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    font-weight:700;
+  }
+  .c-telem-header span{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  .c-telem-icon{
+    width:12px;
+    height:12px;
+    color:currentColor;
+    opacity:0.92;
+    flex-shrink:0;
+  }
+  .c-telem-main{
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+    font-family:"Segoe UI Variable Small","Cascadia Code",Consolas,monospace;
+  }
+  .c-telem-num{
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--text-primary, #ffffff);
+    letter-spacing:-0.2px;
+  }
+  .c-telem-unit{
+    font-size:11px;
+    color:var(--text-secondary, #cbd5e1);
+    font-weight:500;
+  }
+  .c-telem-badge{
+    font-size:10px;
+    padding:1px 5px;
+    border-radius:5px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.14);
+    color:var(--text-secondary, #cbd5e1);
+    font-family:"Segoe UI Variable Small","Cascadia Code",Consolas,monospace;
+    font-weight:500;
+  }
+  .c-telem-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:3px 8px;
+    margin-top:2px;
+    padding-top:4px;
+    border-top:1px solid rgba(255, 255, 255, 0.08);
+    font-family:"Segoe UI Variable Small","Cascadia Code",Consolas,monospace;
+    font-size:10.5px;
+  }
+  .c-telem-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:var(--text-muted, #94a3b8);
+  }
+  .c-telem-val{
+    color:var(--text-primary, #f1f5f9);
+    font-weight:600;
+  }
+  .c-sessions{margin-top:12px;border-top:1px solid var(--card-divider, rgba(255,255,255,0.10));padding-top:8px}
+  .s-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary, #cbd5e1);padding:2px 0}
+  .s-dot{width:6px;height:6px;border-radius:3px;flex:0 0 auto}
+  .c-scale{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--card-divider, rgba(255,255,255,0.10))}
+  .c-scale input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:3px;border-radius:2px;background:var(--track-bg, rgba(255,255,255,0.14));outline:none}
+  .c-scale input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:var(--track-bg, rgba(255,255,255,0.14))}
+  .c-scale input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:10px;height:10px;margin-top:-3.5px;border-radius:50%;background:var(--text-primary, #ffffff);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+  .c-scale-val{font-size:10px;color:var(--text-muted, #94a3b8);min-width:30px;text-align:right}
+
+  /* Hardware Telemetry Card */
+  .hw-container {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 6px;
+  }
+  .hw-metric-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-divider, rgba(255, 255, 255, 0.10));
+    border-radius: 10px;
+    padding: 7px 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+  .hw-metric-box:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+  .hw-metric-box.active-metric {
+    border-color: var(--accent-hex, #0078d4);
+    background: rgba(0, 120, 212, 0.14);
+    box-shadow: 0 0 10px rgba(0, 120, 212, 0.25);
+  }
+  .hw-box-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted, #94a3b8);
+    font-weight: 600;
+  }
+  .hw-box-head span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .hw-box-val {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+    font-family: "Segoe UI Variable Text", "Cascadia Code", Consolas, monospace;
+  }
+  .hw-net-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 6px;
+    font-size: 10.5px;
+    margin-top: 2px;
+  }
+  .hw-net-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary, #cbd5e1);
+  }
+  .hw-net-item b {
+    color: var(--text-primary, #ffffff);
+    font-weight: 700;
+  }
+  .hw-app-badge {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 9px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.30);
+    font-size: 11px;
+    color: #34d399;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .hw-fps-val {
+    font-size: 12.5px;
+    font-weight: 900;
+    color: #00ff88;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+  }
+  .hw-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .hw-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: var(--text-primary, #ffffff);
+    transition: all 0.12s ease;
+    user-select: none;
+  }
+  .hw-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.30);
+    transform: translateY(-1px);
+  }
+  .hw-btn:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .hw-btn.active {
+    background: rgba(0, 120, 212, 0.25);
+    border-color: #0078d4;
+    color: #60a5fa;
+  }
+  .hw-hint {
+    font-size: 10px;
+    color: var(--text-muted, #94a3b8);
+    text-align: center;
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  #notice{
+    position:absolute;left:8px;bottom:6px;right:80px;font-size:10px;color:var(--text-muted, #94a3b8);
+    background:var(--card-bg, rgba(0,0,0,.85));border-radius:8px;padding:4px 8px;display:none
+  }
+  #notice.show{display:block}
+
+  /* Context Menu with dynamic frosted glass & taskbar accent */
+  #ctx-menu, .context-menu{
+    position:absolute;right:72px;top:50%;transform:translateY(-50%);
+    width:196px;background:var(--ctx-bg, rgba(255, 255, 255, 0.05));
+    backdrop-filter:var(--ctx-filter, none);
+    -webkit-backdrop-filter:var(--ctx-filter, none);
+    border:1px solid var(--ctx-border, rgba(255, 255, 255, 0.12));
+    border-radius:14px;
+    box-shadow:var(--ctx-shadow, inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 12px 32px rgba(0, 0, 0, 0.25));
+    padding:8px 6px;display:none;z-index:100;
+    color:var(--text-primary, #f3f3f3);font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+    font-size:12px;user-select:none;
+  }
+  /* Invisible hit-bridge: completely eliminates any dead area between the pill and menu */
+  #ctx-menu::before, .context-menu::before{
+    content:"";position:absolute;
+    top:-10px;bottom:-10px;right:-22px;left:-10px;
+    z-index:-1;pointer-events:auto;
+  }
+  #ctx-menu.show, .context-menu.show{display:block;animation:menuFadeIn 0.12s cubic-bezier(0,0,0.2,1)}
+  @keyframes menuFadeIn{
+    from{opacity:0;transform:scale(0.96)}
+    to{opacity:1;transform:scale(1)}
+  }
+  .ctx-header{
+    padding:4px 8px 4px;font-size:10px;font-weight:600;
+    color:var(--text-muted, #9e9ea4);text-transform:uppercase;letter-spacing:0.5px;
+  }
+  .ctx-item{
+    display:flex;align-items:center;gap:8px;padding:6px 8px;
+    border-radius:6px;cursor:pointer;color:var(--text-primary, #f3f3f3);transition:background 0.08s ease;
+  }
+  .ctx-item:hover{background:var(--ctx-hover, rgba(255,255,255,0.12))}
+  .ctx-item:active{background:rgba(255,255,255,0.20)}
+  .ctx-check{
+    width:16px;height:16px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:var(--check-color, #38bdf8);font-weight:bold;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+    text-shadow:0 0 8px var(--check-glow, rgba(56,189,248,0.5));
+  }
+  .ctx-icon{
+    width:16px;height:16px;display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:var(--text-secondary, #cbd5e1);
+    opacity:0.92;
+    transition:color 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+  }
+  .ctx-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ctx-sep{height:1px;background:var(--card-divider, rgba(255,255,255,0.08));margin:4px 2px}
+  .ctx-action{
+    display:flex;align-items:center;gap:8px;padding:6px 8px;
+    border-radius:6px;cursor:pointer;color:var(--text-secondary, #d1d1d6);transition:background 0.08s ease;
+  }
+  .ctx-action:hover{background:var(--ctx-hover, rgba(255,255,255,0.12));color:var(--text-primary, #fff)}
+  .ctx-action:hover .ctx-icon{color:#ffffff;opacity:1;transform:scale(1.15);filter:drop-shadow(0 0 6px rgba(255,255,255,0.6))}
+
+  /* RTL Support for Arabic */
+  html[dir="rtl"] #card {
+    direction: rtl;
+    text-align: right;
+  }
+  html[dir="rtl"] .c-head {
+    direction: rtl;
+  }
+  html[dir="rtl"] .c-telem-header,
+  html[dir="rtl"] .c-telem-main,
+  html[dir="rtl"] .c-telem-grid,
+  html[dir="rtl"] .c-telem-item {
+    direction: rtl;
+  }
+  html[dir="rtl"] .w-reset {
+    margin-left: 0;
+    margin-right: auto;
+  }
+  html[dir="rtl"] #ctx-menu, html[dir="rtl"] .context-menu {
+    direction: rtl;
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="card"></div>
+  <div id="ctx-menu"></div>
+  <div id="pill"></div><!-- one .cell per provider, stacked vertically (upstream: data-driven, the same layout for 1–5 cells) -->
+  <div id="notice"></div>
+</div>
+<script>
+const invoke = window.__TAURI__.core.invoke;
+const listen = window.__TAURI__.event.listen;
+
+/* Colour ramp (upstream palette values) */
+const AMPLE='#00FF88', WATCH='#F2FF00', CRIT='#FF3F00';
+const TRACK='#303030', AMBER='#FFBF00', RUNGREEN='#28E07B';
+const tone=f=> f>=0.8?CRIT : f>=0.5?WATCH : AMPLE;
+
+let usage={status:'',windows:[],fetched_at:0,note:''};
+let codexSnap={status:'absent',windows:[],fetched_at:0,note:''};
+let cursorSnap={status:'absent',windows:[],fetched_at:0,note:''};
+let agSnap={status:'absent',windows:[],fetched_at:0,note:''};
+let glyphs={}; // id → {kind:'mark'|'appicon', url}
+let activity=[]; // working state of the non-Claude providers: {provider,state:'busy'|'waiting',name,detail,since}
+let uiLang='en';
+let appearanceConfig = { style:'windows', custom_accent:'#0078d4', autohide:false, autohide_delay:5, screen_edge:'right', autohide_peek:14 };
+let systemTheme = { r:0, g:120, b:215, hex:'#0078d4', is_dark:true };
+let autohideTimer = null;
+
+// Hardware & Live System Telemetry State
+let hwMetrics = {
+  cpu_usage: 0,
+  cpu_cores: 0,
+  ram_used_mb: 0,
+  ram_total_mb: 0,
+  ram_usage_pct: 0,
+  net_download_bps: 0,
+  net_upload_bps: 0,
+  net_download_speed: '0 KB/s',
+  net_upload_speed: '0 KB/s',
+  daily_download_bytes: 0,
+  daily_upload_bytes: 0,
+  daily_download_str: '0 MB',
+  daily_upload_str: '0 MB',
+  active_app: null,
+  fps: null,
+  timestamp: 0
+};
+let hwRingMetric = localStorage.getItem('codenotch.hw.ring_metric') || 'cpu';
+const HW_METRICS = ['cpu', 'ram', 'net', 'daily'];
+let hwConfig = { overlay_enabled: false, overlay_clickthrough: false };
+let hwPollTimer = null;
+
+const SVG_CPU = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>`;
+const SVG_RAM = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="18" x2="6" y2="22"/><line x1="10" y1="18" x2="10" y2="22"/><line x1="14" y1="18" x2="14" y2="22"/><line x1="18" y1="18" x2="18" y2="22"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/></svg>`;
+const SVG_ARROWS = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg>`;
+const SVG_DAILY = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+const SVG_GAME = `<svg class="stroke-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>`;
+
+function setHwRingMetric(metric){
+  if(HW_METRICS.includes(metric)){
+    hwRingMetric = metric;
+    localStorage.setItem('codenotch.hw.ring_metric', hwRingMetric);
+    updateHardwareCell();
+    if(card && card.classList.contains('show') && hoverId === 'hardware'){
+      renderCard();
+    }
+  }
+}
+
+function cycleHwMetric(forward = true){
+  let idx = HW_METRICS.indexOf(hwRingMetric);
+  if(idx < 0) idx = 0;
+  if(forward){
+    idx = (idx + 1) % HW_METRICS.length;
+  } else {
+    idx = (idx - 1 + HW_METRICS.length) % HW_METRICS.length;
+  }
+  hwRingMetric = HW_METRICS[idx];
+  localStorage.setItem('codenotch.hw.ring_metric', hwRingMetric);
+  updateHardwareCell();
+  if(card && card.classList.contains('show') && hoverId === 'hardware'){
+    renderCard();
+  }
+}
+
+const AR_TEXT={
+  'Included usage':'الاستخدام المضمن',
+  'API usage':'استخدام API',
+  'On demand':'حسب الطلب',
+  'Usage':'الاستهلاك',
+  'Current session':'الجلسة الحالية',
+  'Weekly (all models)':'أسبوعي (كافة النماذج)',
+  'Weekly (Opus)':'أسبوعي (Opus)',
+  'Weekly (model-scoped)':'أسبوعي (للنموذج المحدد)',
+  'Weekly limit':'الحد الأسبوعي',
+  'Weekly Limit':'الحد الأسبوعي',
+  '5-Hour Limit':'حد الـ 5 ساعات',
+  'Monthly limit':'الحد الشهري',
+  'Monthly Limit':'الحد الشهري',
+  'Longer window':'فترة ممتدة',
+  'Requests today · no limit published':'طلبات اليوم · لا يوجد حد معلن',
+  'Updated':'تم التحديث',
+  'Resetting…':'جاري إعادة الضبط…',
+  'Resets at':'يعاد الضبط عند',
+  'Resets in':'يعاد الضبط خلال',
+  'Resets':'إعادة الضبط',
+  'Used':'المستخدم',
+  'Working':'يعمل الآن',
+  'Waiting':'في انتظار الرد',
+  'Streaming (network)':'بث مباشر (شبكة)',
+  'Rate limited, retrying in':'تم تجاوز المعدل، إعادة المحاولة خلال',
+  'Rate limited — retrying in':'تم تجاوز المعدل — إعادة المحاولة خلال',
+  'request today':'طلب اليوم',
+  'requests today':'طلبات اليوم',
+  'no requests today':'لا توجد طلبات اليوم',
+  'Waiting for first reading…':'في انتظار القراءة الأولى…',
+  'Sign in to Claude Code to see usage.':'سجل الدخول إلى Claude Code لعرض الاستهلاك.',
+  'Sign in to Cursor to see usage.':'سجل الدخول إلى Cursor لعرض الاستهلاك.',
+  'Sign in to Codex to see usage.':'سجل الدخول إلى Codex لعرض الاستهلاك.',
+  'Sign in to Antigravity to see usage.':'سجل الدخول إلى Antigravity لعرض الاستهلاك.',
+  'needs your input':'يتطلب تدخلك',
+  'Working in':'يعمل في',
+  'Notch size':'حجم الشريط',
+  'Tokens':'التوكنز',
+  'Total':'الإجمالي',
+  'Prompt':'الإدخال',
+  'Completion':'الإخراج',
+  'Cache Read':'قراءة كاش',
+  'Cache Write':'كتابة كاش',
+  'Reasoning':'الاستدلال',
+  'Requests':'الطلبات',
+  'Steps today':'خطوات اليوم',
+  'Context window':'نافذة السياق',
+  'Active Providers':'المزودون النشطون',
+  'Refresh Usage':'تحديث الاستهلاك',
+  'Settings':'الإعدادات',
+  'Hide / Dock Notch':'طي / إخفاء الشريط',
+  'System Resources':'موارد الجهاز',
+  'Processor':'المعالج',
+  'Memory':'الذاكرة',
+  'Network':'الشبكة',
+  'Daily Data':'بيانات اليوم',
+  'Gaming HUD':'شاشة الألعاب HUD',
+  'HUD':'شاشة HUD',
+  'Click-thru':'تمرير النقرات',
+  'Active 3D Game':'لعبة نشطة',
+  'Active Window':'النافذة الحالية',
+  'Scroll notch ring to cycle metric':'مرر عجلة الفأرة على الأيقونة للتبديل',
+  'Speed':'السرعة',
+  'Today':'اليوم',
+  'Cores':'أنوية',
+  'Download':'تنزيل',
+  'Upload':'رفع'
+};
+const RU_TEXT={
+  'Included usage':'Включённое использование',
+  'API usage':'Использование API',
+  'On demand':'По запросу',
+  'Usage':'Использование',
+  'Current session':'Текущий сеанс',
+  'Weekly (all models)':'Недельный (все модели)',
+  'Weekly (Opus)':'Недельный (Opus)',
+  'Weekly (model-scoped)':'Недельный (для выбранной модели)',
+  'Weekly limit':'Недельный лимит',
+  'Weekly Limit':'Недельный лимит',
+  '5-Hour Limit':'Лимит на 5 часов',
+  'Monthly limit':'Месячный лимит',
+  'Monthly Limit':'Месячный лимит',
+  'Longer window':'Более длительный период',
+  'Requests today · no limit published':'Запросы сегодня · лимит не опубликован',
+  'Updated':'Обновлено',
+  'Resetting…':'Сброс…',
+  'Resets at':'Сброс в',
+  'Resets':'Сброс',
+  'Used':'Использовано',
+  'Working':'Работа',
+  'Waiting':'Ожидание',
+  'Streaming (network)':'Потоковая передача (сеть)',
+  'Rate limited, retrying in':'Превышен лимит, повтор через',
+  'Rate limited — retrying in':'Превышен лимит — повтор через',
+  'request today':'запрос сегодня',
+  'requests today':'запросов сегодня',
+  'no requests today':'сегодня запросов нет',
+  'Waiting for first reading…':'Ожидание первого показания…',
+  'Sign in to Claude Code to see usage.':'Войдите в Claude Code, чтобы увидеть использование.',
+  'Sign in to Cursor to see usage.':'Войдите в Cursor, чтобы увидеть использование.',
+  'Sign in to Codex to see usage.':'Войдите в Codex, чтобы увидеть использование.',
+  'Sign in to Antigravity to see usage.':'Войдите в Antigravity, чтобы увидеть использование.',
+  'needs your input':'требуется ваш ответ',
+  'Working in':'Работает в',
+  'Notch size':'Размер панели',
+  'Tokens':'Токены',
+  'Total':'Всего',
+  'Prompt':'Вход',
+  'Completion':'Выход',
+  'Cache Read':'Кэш чт.',
+  'Cache Write':'Кэш зап.',
+  'Reasoning':'Рассуждения',
+  'Requests':'Запросы',
+  'Steps today':'Шагов сегодня',
+  'Context window':'Контекст',
+  'System Resources':'Ресурсы системы',
+  'Processor':'Процессор',
+  'Memory':'Память',
+  'Network':'Сеть',
+  'Daily Data':'Трафик сегодня',
+  'Gaming HUD':'Игровой HUD',
+  'HUD':'HUD экран',
+  'Click-thru':'Сквозные клики',
+  'Active 3D Game':'Активная игра',
+  'Active Window':'Активное окно',
+  'Scroll notch ring to cycle metric':'Прокрутите для смены метрики',
+  'Speed':'Скорость',
+  'Today':'Сегодня',
+  'Cores':'ядер',
+  'Download':'Загрузка',
+  'Upload':'Отдача'
+};
+function textCopy(value){
+  if(!value) return '';
+  if(uiLang==='ar'){
+    if(AR_TEXT[value]) return AR_TEXT[value];
+    return String(value)
+      .replace(/^(\d+)m limit$/,'حد $1 دقيقة')
+      .replace(/^(\d+)h limit$/,'حد $1 ساعة')
+      .replace(/^(\d+)d limit$/,'حد $1 يوم')
+      .replace(/^Rate limited, retrying in (\d+)s$/,'تم تجاوز المعدل، المحاولة خلال $1 ث')
+      .replace(/^Rate limited — retrying in (\d+)s$/,'تم تجاوز المعدل — المحاولة خلال $1 ث')
+      .replace(/^Unlimited on the (.+) plan — nothing to meter$/,'خطة $1 غير محدودة — لا يوجد استهلاك')
+      .replace(/^The (.+) plan has nothing for Cursor to meter yet$/,'لا يوجد ما يمكن قياسه بعد لخطة $1')
+      .replace(/^(.+) · Google publishes no quota for this account$/,'$1 · جوجل لا تنشر حصة لهذا الحساب')
+      .replace(/^Live read failed \((.+)\)$/,'فشلت القراءة المباشرة ($1)')
+      .replace(/Weekly \(all models\)/g,'أسبوعي (كافة النماذج)')
+      .replace(/Weekly \(Opus\)/g,'أسبوعي (Opus)')
+      .replace(/Weekly \(model-scoped\)/g,'أسبوعي (للنموذج المحدد)')
+      .replace(/Weekly limit/g,'الحد الأسبوعي')
+      .replace(/Monthly limit/g,'الحد الشهري')
+      .replace(/\bWeekly\b/g,'أسبوعي')
+      .replace(/\bMonthly\b/g,'شهري')
+      .replace(/ · via /g,' · عبر ')
+      .replace(/needs your input/g,'يتطلب تدخلك')
+      .replace(/^Working in /,'يعمل في ')
+      .replace(/via Antigravity CLI/g,'عبر Antigravity CLI')
+      .replace(/via Antigravity/g,'عبر Antigravity')
+      .replace(/via Google/g,'عبر Google')
+      .replace(/No Claude Code credential found/g,'لم يتم العثور على بيانات اعتماد Claude Code')
+      .replace(/Credential expired — run any claude command \(or chat with Claude\) to refresh it/g,'انتهت صلاحية الجلسة — نفذ أمر claude أو ابدأ محادثة للتحديث')
+      .replace(/Credential rejected \(switched accounts\?\)/g,'تم رفض بيانات الاعتماد (هل قمت بتبديل الحساب؟)')
+      .replace(/Codex sign-in expired — open Codex once to refresh it/g,'انتهت جلسة Codex — افتح Codex لتحديثها')
+      .replace(/Codex rejected its sign-in — sign in to Codex again/g,'تم رفض تسجيل دخول Codex — يرجى تسجيل الدخول ثانية')
+      .replace(/Codex reported no usage windows/g,'لم يبلغ Codex عن أي نوافذ استهلاك')
+      .replace(/Codex has not recorded a usage snapshot yet/g,'لم يسجل Codex لقطة استهلاك بعد')
+      .replace(/from last Codex run/g,'من آخر تشغيل لـ Codex')
+      .replace(/Waiting for Antigravity CLI quota/g,'في انتظار حصة Antigravity CLI')
+      .replace(/Open Antigravity to read its quota/g,'افتح Antigravity لقراءة الحصة')
+      .replace(/Antigravity's Google session was rejected — sign in again in Antigravity/g,'تم رفض جلسة جوجل في Antigravity — سجل الدخول ثانية')
+      .replace(/Antigravity is closed — last reading kept/g,'Antigravity مغلق — تم الاحتفاظ بآخر قراءة')
+      .replace(/Sign in to Cursor \(the editor\) to see usage\./g,'سجل الدخول إلى Cursor (المحرر) لعرض الاستهلاك.')
+      .replace(/Cursor session was rejected — sign in again in the editor/g,'تم رفض جلسة Cursor — سجل الدخول مرة أخرى في المحرر');
+  }
+  if(uiLang==='ru'){
+    if(RU_TEXT[value]) return RU_TEXT[value];
+    return String(value)
+      .replace(/^(\d+)m limit$/,'Лимит на $1 мин')
+      .replace(/^(\d+)h limit$/,'Лимит на $1 ч')
+      .replace(/^(\d+)d limit$/,'Лимит на $1 дн.')
+      .replace(/^Rate limited, retrying in (\d+)s$/,'Превышен лимит, повтор через $1 с')
+      .replace(/^Rate limited — retrying in (\d+)s$/,'Превышен лимит — повтор через $1 с')
+      .replace(/^Unlimited on the (.+) plan — nothing to meter$/,'Безлимитный тариф $1 — нечего измерять')
+      .replace(/^The (.+) plan has nothing for Cursor to meter yet$/,'В тарифе $1 пока нечего измерять Cursor')
+      .replace(/^(.+) · Google publishes no quota for this account$/,'$1 · Google не публикует лимит для этого аккаунта')
+      .replace(/^Live read failed \((.+)\)$/,'Ошибка чтения онлайн-данных ($1)')
+      .replace(/Weekly \(all models\)/g,'Недельный (все модели)')
+      .replace(/Weekly \(Opus\)/g,'Недельный (Opus)')
+      .replace(/Weekly \(model-scoped\)/g,'Недельный (для выбранной модели)')
+      .replace(/Weekly limit/g,'Недельный лимит')
+      .replace(/Monthly limit/g,'Месячный лимит')
+      .replace(/\bWeekly\b/g,'Недельный')
+      .replace(/\bMonthly\b/g,'Месячный')
+      .replace(/ · via /g,' · через ')
+      .replace(/needs your input/g,'требуется ваш ответ')
+      .replace(/^Working in /,'Работает в ')
+      .replace(/via Antigravity CLI/g,'через CLI Antigravity')
+      .replace(/via Antigravity/g,'через Antigravity')
+      .replace(/via Google/g,'через Google')
+      .replace(/No Claude Code credential found/g,'Учётные данные Claude Code не найдены')
+      .replace(/Credential expired — run any claude command \(or chat with Claude\) to refresh it/g,'Учётные данные истекли — выполните любую команду claude (или начните чат с Claude), чтобы обновить их')
+      .replace(/Credential rejected \(switched accounts\?\)/g,'Учётные данные отклонены (вы сменили аккаунт?)')
+      .replace(/Codex sign-in expired — open Codex once to refresh it/g,'Срок входа в Codex истёк — откройте Codex для обновления')
+      .replace(/Codex rejected its sign-in — sign in to Codex again/g,'Codex отклонил вход — войдите в Codex снова')
+      .replace(/Codex reported no usage windows/g,'Codex не сообщил окна использования')
+      .replace(/Codex has not recorded a usage snapshot yet/g,'Codex ещё не записал снимок использования')
+      .replace(/from last Codex run/g,'из последнего запуска Codex')
+      .replace(/Waiting for Antigravity CLI quota/g,'Ожидание квоты Antigravity CLI')
+      .replace(/Open Antigravity to read its quota/g,'Откройте Antigravity, чтобы получить квоту')
+      .replace(/Antigravity's Google session was rejected — sign in again in Antigravity/g,'Сеанс Google в Antigravity отклонён — войдите в Antigravity снова')
+      .replace(/Antigravity is closed — last reading kept/g,'Antigravity закрыт — сохранено последнее показание')
+      .replace(/Sign in to Cursor \(the editor\) to see usage\./g,'Войдите в Cursor (редактор), чтобы увидеть использование.')
+      .replace(/Cursor session was rejected — sign in again in the editor/g,'Сеанс Cursor отклонён — снова войдите в редакторе');
+  }
+  return value;
+}
+function setUiLanguage(lang){
+  const next=(lang==='ar'||lang==='ru')?lang:'en';
+  if(uiLang===next) return;
+  uiLang=next;
+  const isRtl = (uiLang === 'ar');
+  document.documentElement.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', uiLang);
+  renderRing();
+  if(card&&card.classList.contains('show')) renderCard();
+}
+// Notch size, as a percentage (40…100). Declared here with the rest of the page state so the card
+// renderer can never reference it before it exists.
+let scalePct=100, scaleDragging=false, scaleT=null, scaleSaveT=null;
+// "Is it working?" per provider: Claude from the four-state engine, the others from the activity probe. Returns running | attention | idle
+function workState(id){
+  if(id==='claude'){
+    if(stateSnap.agg==='running') return 'running';
+    if(stateSnap.agg==='attention') return 'attention';
+    // The engine cannot see cloud sessions: fall back to the desktop app's network activity
+    if(activity.some(a=>a.provider==='claude'&&a.state==='busy')) return 'running';
+    return 'idle';
+  }
+  const acts=activity.filter(a=>a.provider===id);
+  if(acts.some(a=>a.state==='waiting')) return 'attention';
+  if(acts.some(a=>a.state==='busy')) return 'running';
+  return 'idle';
+}
+function glyphHtml(p,small){
+  if(p && p.id==='hardware'){
+    let svgContent = SVG_CPU;
+    if(hwRingMetric==='ram') svgContent = SVG_RAM;
+    else if(hwRingMetric==='net') svgContent = SVG_ARROWS;
+    else if(hwRingMetric==='daily') svgContent = SVG_DAILY;
+    return `<span class="mark" title="${textCopy('Scroll notch ring to cycle metric')}">${svgContent}</span>`;
+  }
+  const g=glyphs[p.id];
+  if(g&&g.kind==='svg'&&g.svg) return `<span class="mark">${g.svg}</span>`;
+  if(g&&g.url) return `<img class="${g.kind}" src="${g.url}" alt="${p.name}"${small?' style="width:16px;height:16px;border-radius:4px"':''}>`;
+  return small?'':p.glyph; // fallback letter
+}
+// Provider table (order = top to bottom in the pill). `glyph` is the fallback letter used when no mark is available
+// What each ring shows: [{provider, window}]. null or an empty list means every provider, each
+// showing whichever of its windows is fullest, which is the original behaviour and the default.
+// An empty `window` on a slot means the same "fullest" rule for that one provider.
+let notchSlots=null;
+function slotFor(id){
+  if(!Array.isArray(notchSlots)) return null;
+  for(const s of notchSlots){ if(s&&s.provider===id) return s; }
+  return null;
+}
+function providers(){
+  const list=[{id:'claude',name:'Claude',glyph:'C',snap:usage}];
+  const want = id => Array.isArray(notchSlots) && notchSlots.some(s=>s&&s.provider===id);
+
+  if(codexSnap.status!=='absent' || want('codex')) list.push({id:'codex',name:'Codex',glyph:'Cx',snap:codexSnap});
+  if(cursorSnap.status!=='absent' || want('cursor')) list.push({id:'cursor',name:'Cursor',glyph:'Cu',snap:cursorSnap});
+  if(agSnap.status!=='absent' || want('gemini')) list.push({id:'gemini',name:'Antigravity',glyph:'Ag',snap:agSnap});
+
+  // Expanded first-class modern providers
+  const extras = [
+    {id:'opencode',name:'OpenCode',glyph:'Oc'},
+    {id:'deepseek',name:'DeepSeek',glyph:'Ds'},
+    {id:'zed',name:'Zed AI',glyph:'Z'},
+    {id:'ollama',name:'Ollama',glyph:'Ol'}
+  ];
+  for(const ext of extras){
+    if(want(ext.id) || (glyphs[ext.id] && Array.isArray(notchSlots) && notchSlots.length === 0)){
+      list.push({
+        id: ext.id,
+        name: ext.name,
+        glyph: ext.glyph,
+        snap: { status:'ok', windows:[], fetched_at: Date.now() }
+      });
+    }
+  }
+
+  // Unified System Resources Provider
+  const wantHw = want('hardware') || (!Array.isArray(notchSlots) || notchSlots.length === 0);
+  if(wantHw){
+    list.push({
+      id: 'hardware',
+      name: textCopy('System Resources'),
+      glyph: 'HW',
+      snap: { status:'ok', windows:[], fetched_at: hwMetrics.timestamp || Date.now() }
+    });
+  }
+
+  // Any custom or external provider slot configured in notchSlots
+  if(Array.isArray(notchSlots)){
+    for(const sl of notchSlots){
+      if(sl && sl.provider && !list.some(p=>p.id===sl.provider)){
+        list.push({
+          id: sl.provider,
+          name: sl.provider.charAt(0).toUpperCase() + sl.provider.slice(1),
+          glyph: sl.provider.slice(0, 2).toUpperCase(),
+          snap: { status:'ok', windows:[], fetched_at: Date.now() }
+        });
+      }
+    }
+    const picked=list.filter(p=>!!slotFor(p.id));
+    if(picked.length) return picked;
+  }
+  return list;
+}
+function headlineOf(snap,id){
+  if(!snap.windows.length) return null;
+  const metered=snap.windows.filter(w=>w.count==null);
+  // A ring can be pinned to one window in settings; falling back to the fullest keeps working if
+  // that window disappears, rather than leaving the ring blank.
+  const slot=id?slotFor(id):null;
+  if(slot&&slot.window){
+    const pinned=metered.filter(w=>w.id===slot.window);
+    if(pinned.length) return pinned[0];
+  }
+  if(metered.length) return metered.reduce((a,b)=> b.used>a.used?b:a);
+  return snap.windows[0];
+}
+function staleOf(snap){ if(snap.status==='stale') return true; return snap.fetched_at>0 && (Date.now()-snap.fetched_at)>5*60*1000; }
+let stateSnap={sessions:[],agg:'idle'};
+
+function svgArc(r,frac,color,width,extra=''){
+  const C=2*Math.PI*r;
+  return `<circle cx="28" cy="28" r="${r}" fill="none" stroke="${color}" stroke-width="${width}"
+    stroke-dasharray="${(C*frac).toFixed(2)} ${C.toFixed(2)}" stroke-linecap="butt"
+    transform="rotate(-90 28 28)" ${extra}/>`;
+}
+
+function headline(){ // the cell shows the most constrained window — the one that will stop you first
+  if(!usage.windows.length) return null;
+  return usage.windows.reduce((a,b)=> b.used>a.used?b:a);
+}
+
+function isStale(){
+  if(usage.status==='stale') return true;
+  return usage.fetched_at>0 && (Date.now()-usage.fetched_at)>5*60*1000;
+}
+
+function renderRing(){
+  const ps=providers();
+  // Rebuild the DOM only when the structure changes (never swap the element under the cursor)
+  const want=ps.map(p=>p.id+':'+(glyphs[p.id]?glyphs[p.id].kind:'-')).join(',');
+  if(pill.dataset.cells!==want){
+    pill.innerHTML=ps.map(p=>`<div class="cell" data-p="${p.id}">
+      <div class="ringwrap"><svg class="ring" viewBox="0 0 56 56"></svg><div class="glyph ${(!glyphs[p.id]&&p.glyph.length>1)?'small':''}">${glyphHtml(p)}</div></div>
+      <div class="pct">—</div></div>`).join('');
+    pill.dataset.cells=want;
+  }
+  for(const p of ps){
+    const cell=pill.querySelector(`.cell[data-p="${p.id}"]`); if(!cell) continue;
+    const svg=cell.querySelector('svg.ring'), pct=cell.querySelector('.pct'), glyph=cell.querySelector('.glyph'), wrap=cell.querySelector('.ringwrap');
+    if(p.id==='hardware'){
+      renderHardwareCell(cell, svg, pct, glyph, wrap);
+      continue;
+    }
+    const h=headlineOf(p.snap,p.id);
+    let inner=`<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+    if(h && h.count==null) inner+=svgArc(25,Math.min(h.used,1),tone(h.used),5);
+    { // thin inner arc: spinning = working, amber pulse = waiting on you (one animation for all four, different sources)
+      const ws=workState(p.id);
+      if(ws==='running') inner+=`<g class="arc-spin">${svgArc(19,0.28,RUNGREEN,2.5)}</g>`;
+      else if(ws==='attention') inner+=`<g class="arc-pulse"><circle cx="28" cy="28" r="19" fill="none" stroke="${AMBER}" stroke-width="2.5"/></g>`;
+    }
+    svg.innerHTML=inner;
+    if(p.snap.status==='needsAuth'||p.snap.status==='none') pct.textContent='—';
+    else if(h && h.count!=null) pct.textContent='~'+h.count;
+    else if(h) pct.textContent=(h.derived?'~':'')+Math.round(h.used*100)+'%';
+    else pct.textContent='…';
+    glyph.classList.toggle('dim', !!(h && h.used>=1));
+    wrap.classList.toggle('dim', staleOf(p.snap));
+  }
+  reportHot(); // a provider appearing or leaving resizes the pill
+}
+
+function renderHardwareCell(cell, svg, pct, glyph, wrap){
+  let val = 0;
+  let text = '—';
+  let arcColor = tone(0.2);
+
+  if(hwRingMetric === 'cpu'){
+    const cpu = hwMetrics.cpu_usage || 0;
+    val = cpu / 100;
+    text = Math.round(cpu) + '%';
+    arcColor = tone(val);
+  } else if(hwRingMetric === 'ram'){
+    const ram = hwMetrics.ram_usage_pct || 0;
+    val = ram / 100;
+    text = Math.round(ram) + '%';
+    arcColor = tone(val);
+  } else if(hwRingMetric === 'net'){
+    const bps = hwMetrics.net_download_bps || 0;
+    val = Math.min(1, bps / (10 * 1024 * 1024)); // 0..10MB/s scale
+    const spd = hwMetrics.net_download_speed || '0 KB/s';
+    text = spd.replace('/s','').replace(' ','');
+    arcColor = '#38bdf8';
+  } else if(hwRingMetric === 'daily'){
+    const bytes = hwMetrics.daily_download_bytes || 0;
+    val = Math.min(1, bytes / (5 * 1024 * 1024 * 1024)); // 0..5GB scale
+    const dl = hwMetrics.daily_download_str || '0 MB';
+    text = dl.replace(' ','');
+    arcColor = '#c084fc';
+  }
+
+  let inner = `<circle cx="28" cy="28" r="22" fill="#2a2a2a"/><circle cx="28" cy="28" r="25" fill="none" stroke="${TRACK}" stroke-width="5"/>`;
+  inner += svgArc(25, Math.min(val, 1), arcColor, 5);
+  svg.innerHTML = inner;
+  pct.textContent = text;
+  glyph.innerHTML = glyphHtml({id: 'hardware', name: 'Hardware'}, false);
+  glyph.classList.remove('dim');
+  wrap.classList.remove('dim');
+}
+
+function updateHardwareCell(){
+  const cell = pill.querySelector('.cell[data-p="hardware"]');
+  if(!cell) return;
+  const svg = cell.querySelector('svg.ring'), pct = cell.querySelector('.pct'), glyph = cell.querySelector('.glyph'), wrap = cell.querySelector('.ringwrap');
+  if(svg && pct && glyph && wrap){
+    renderHardwareCell(cell, svg, pct, glyph, wrap);
+  }
+}
+
+function resetCopy(ms){
+  if(!ms) return '';
+  const diff=ms-Date.now();
+  if(diff<=0) return uiLang==='ar'?'جاري إعادة الضبط…':(uiLang==='ru'?'Сброс…':'Resetting…');
+  if(diff<60*60*1000) return uiLang==='ar'
+    ? `يعاد الضبط خلال ${Math.max(1,Math.round(diff/60000))} د`
+    : (uiLang==='ru'
+    ? `Сброс через ${Math.max(1,Math.round(diff/60000))} мин`
+    : `Resets in ${Math.max(1,Math.round(diff/60000))} min`);
+  const d=new Date(ms);
+  const locale=uiLang==='ar'?'ar-SA':(uiLang==='ru'?'ru-RU':'en-US');
+  const t=d.toLocaleTimeString(locale,{hour:'numeric',minute:'2-digit'});
+  if(diff<24*60*60*1000) return `${uiLang==='ar'?'يعاد الضبط عند':(uiLang==='ru'?'Сброс в':'Resets at')} ${t}`;
+  return `${uiLang==='ar'?'إعادة الضبط':(uiLang==='ru'?'Сброс':'Resets')} ${d.toLocaleDateString(locale,{weekday:'short'})} ${t}`;
+}
+
+function ago(ms){
+  const m=Math.round((Date.now()-ms)/60000);
+  if(uiLang==='ar') return m<60?`منذ ${m} د`:`منذ ${Math.round(m/60)} س`;
+  if(uiLang==='ru') return m<60?`${m} мин назад`:`${Math.round(m/60)} ч назад`;
+  return m<60?`${m}m ago`:`${Math.round(m/60)}h ago`;
+}
+
+const STATE_DOT={running:RUNGREEN,attention:AMBER,done:'#57c7ff'};
+
+function formatWindowLabel(w){
+  let lbl = w.label || '';
+  const id = (w.id || '').toLowerCase();
+  if(lbl === 'Gemini Models' || lbl === 'Claude and GPT models' || lbl === 'Usage' || !lbl){
+    const is3p = id.includes('3p') || lbl.includes('Claude') || lbl.includes('GPT');
+    const prefix = is3p ? 'Claude/GPT' : 'Gemini';
+    if(id.includes('weekly')) return `${prefix} · Weekly`;
+    if(id.includes('5h') || id.includes('five')) return `${prefix} · 5h`;
+    return prefix;
+  }
+  return lbl;
+}
+
+function fmtTokens(n){
+  if(n==null||isNaN(n)) return '0';
+  n=Number(n);
+  if(n<1000) return String(n);
+  if(n<1000000) return (n/1000).toFixed(n<10000?1:0)+'k';
+  if(n<1000000000) return (n/1000000).toFixed(n<10000000?1:0)+'M';
+  return (n/1000000000).toFixed(1)+'B';
+}
+
+function renderTelemetry(telem){
+  if(!telem) return '';
+  let out = '';
+  if(telem.tokens){
+    const t = telem.tokens;
+    const ctxBadge = telem.context_window ? `<span class="c-telem-badge" title="${textCopy('Context window')}">${fmtTokens(telem.context_window)} ctx</span>` : '';
+    out += `<div class="c-telemetry">
+      <div class="c-telem-header">
+        <span><svg class="c-telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>${textCopy('Tokens')}</span>
+        ${ctxBadge}
+      </div>
+      <div class="c-telem-main">
+        <span class="c-telem-num">${fmtTokens(t.total_tokens || (t.input_tokens + t.output_tokens))}</span>
+        <span class="c-telem-unit">${textCopy('Total')}</span>
+      </div>
+      <div class="c-telem-grid">
+        <div class="c-telem-item"><span>${textCopy('Prompt')}:</span><span class="c-telem-val">${fmtTokens(t.input_tokens)}</span></div>
+        <div class="c-telem-item"><span>${textCopy('Completion')}:</span><span class="c-telem-val">${fmtTokens(t.output_tokens)}</span></div>
+        ${(t.cache_read_tokens > 0 || t.cache_write_tokens > 0) ? `
+          <div class="c-telem-item"><span>${textCopy('Cache Read')}:</span><span class="c-telem-val">${fmtTokens(t.cache_read_tokens)}</span></div>
+          <div class="c-telem-item"><span>${textCopy('Cache Write')}:</span><span class="c-telem-val">${fmtTokens(t.cache_write_tokens)}</span></div>
+        ` : ''}
+        ${t.reasoning_tokens > 0 ? `
+          <div class="c-telem-item"><span>${textCopy('Reasoning')}:</span><span class="c-telem-val">${fmtTokens(t.reasoning_tokens)}</span></div>
+        ` : ''}
+      </div>
+    </div>`;
+  } else if(telem.unit_used != null || telem.unit_total != null){
+    const label = textCopy(telem.unit_label || 'Requests');
+    const used = telem.unit_used != null ? telem.unit_used : 0;
+    const hasTotal = telem.unit_total != null && telem.unit_total > 0;
+    const frac = hasTotal ? Math.min(1, used / telem.unit_total) : 0;
+    out += `<div class="c-telemetry">
+      <div class="c-telem-header">
+        <span><svg class="c-telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>${label}</span>
+      </div>
+      <div class="c-telem-main">
+        <span class="c-telem-num">${hasTotal ? `${used} / ${telem.unit_total}` : `${used}`}</span>
+        <span class="c-telem-unit">${label}</span>
+      </div>
+      ${hasTotal ? `
+        <div class="w-track" style="margin:4px 0 2px">
+          <div class="w-fill" style="width:${(frac*100).toFixed(0)}%;background:${tone(frac)}"></div>
+        </div>
+      ` : ''}
+    </div>`;
+  }
+  return out;
+}
+
+let hoverId='claude';
+function renderCard(){
+  const c=document.getElementById('card');
+  const p=providers().find(x=>x.id===hoverId)||providers()[0];
+  if(!p) return;
+  if(p.id==='hardware'){
+    renderHardwareCard(c);
+    return;
+  }
+  const snap=p.snap;
+  const headIcon=glyphHtml(p,true);
+  let html=`<div class="c-head">${headIcon}<span class="c-title">${uiLang==='ar'?'استهلاك '+p.name:(uiLang==='ru'?'Использование '+p.name:p.name+' Usage')}</span></div>`;
+  if(staleOf(snap)&&snap.fetched_at) html+=`<div class="c-sub">${textCopy('Updated')} ${ago(snap.fetched_at)}</div>`;
+  if(snap.telemetry) html+=renderTelemetry(snap.telemetry);
+  if(snap.status==='needsAuth'){
+    const who={
+      claude:'Sign in to Claude Code to see usage.',
+      cursor:'Sign in to Cursor to see usage.',
+      codex:'Sign in to Codex to see usage.',
+      gemini:'Sign in to Antigravity to see usage.',
+      opencode:'Run opencode in your terminal to start session.',
+      deepseek:'Configure DEEPSEEK_API_KEY or launch local model.',
+      zed:'Open Zed editor and invoke assistant to track activity.',
+      ollama:'Ensure Ollama service is running (ollama serve).'
+    }[p.id]||'Sign in to provider to see usage.';
+    html+=`<div class="c-note">${textCopy(who)}<br>${esc(textCopy(snap.note||''))}</div>`;
+  }else if(!snap.windows.length){
+    if(!snap.telemetry) html+=`<div class="c-note">${esc(textCopy(snap.note||'Waiting for first reading…'))}</div>`;
+    else if(snap.note) html+=`<div class="c-note">${esc(textCopy(snap.note))}</div>`;
+  }else{
+    for(const w of snap.windows){
+      const label = formatWindowLabel(w);
+      if(w.count!=null){
+        html+=`<div class="win"><div class="w-row"><span class="w-label">${esc(textCopy(label))}</span></div>
+          <div class="w-used">${w.count>0?`~${w.count} ${textCopy(w.count===1?'request today':'requests today')}`:textCopy('no requests today')}</div></div>`;
+        continue;
+      }
+      html+=`<div class="win">
+        <div class="w-row"><span class="w-label">${esc(textCopy(label))}</span><span class="w-reset">${resetCopy(w.resets_at)}</span></div>
+        <div class="w-track"><div class="w-fill" style="width:${(Math.min(w.used,1)*100).toFixed(0)}%;background:${tone(w.used)}"></div></div>
+        <div class="w-used">${w.derived?'~':''}${Math.round(w.used*100)}% ${textCopy('Used')}</div>
+      </div>`;
+    }
+    if(snap.note) html+=`<div class="c-note">${esc(textCopy(snap.note))}</div>`;
+  }
+  if(p.id==='claude'){ // live sessions (a full list with jump-to-session is a follow-up)
+    const act=stateSnap.sessions.filter(s=>s.state!=='idle');
+    if(act.length){
+      html+=`<div class="c-sessions">`;
+      for(const s of act.slice(0,5)){
+        html+=`<div class="s-row"><span class="s-dot" style="background:${STATE_DOT[s.state]||'#666'}"></span>${esc(s.title)}</div>`;
+      }
+      html+=`</div>`;
+    }
+  }else{ // other providers: detected activity rows (Cursor reports state; Codex/Antigravity are inferred from recent writes)
+    const acts=activity.filter(a=>a.provider===p.id);
+    if(acts.length){
+      html+=`<div class="c-sessions">`;
+      for(const a of acts.slice(0,5)){
+        const col=a.state==='waiting'?AMBER:RUNGREEN;
+        html+=`<div class="s-row"><span class="s-dot" style="background:${col}"></span>${esc(a.name)}<span style="color:var(--text-muted);margin-left:auto">${esc(textCopy(a.detail))}</span></div>`;
+      }
+      html+=`</div>`;
+    }
+  }
+  html+=`<div class="c-scale"><input id="scale-range" type="range" min="40" max="100" step="5" value="${scalePct}" aria-label="${textCopy('Notch size')}" title="${textCopy('Notch size')}"><span class="c-scale-val" id="scale-val">${scalePct}%</span></div>`;
+  c.innerHTML=html;
+  wireScaleRow();
+  placeCard();
+}
+
+function renderHardwareCard(c){
+  const cpuPct = Math.round(hwMetrics.cpu_usage || 0);
+  const ramPct = Math.round(hwMetrics.ram_usage_pct || 0);
+  const ramUsedGb = ((hwMetrics.ram_used_mb || 0) / 1024).toFixed(1);
+  const ramTotGb = ((hwMetrics.ram_total_mb || 0) / 1024).toFixed(1);
+  const cpuCores = hwMetrics.cpu_cores || 8;
+  const isHudOn = hwConfig.overlay_enabled;
+  const isClickthrough = hwConfig.overlay_clickthrough;
+
+  let appSection = '';
+  if(hwMetrics.active_app){
+    const fpsBadge = (hwMetrics.fps && hwMetrics.fps > 0)
+      ? `<span class="hw-fps-val">${Math.round(hwMetrics.fps)} FPS</span>`
+      : `<span class="hw-fps-val" style="color:#60a5fa;font-size:11px">LIVE</span>`;
+    appSection = `
+      <div class="hw-app-badge">
+        <span style="display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${SVG_GAME}
+          <span style="overflow:hidden;text-overflow:ellipsis">${esc(hwMetrics.active_app)}</span>
+        </span>
+        ${fpsBadge}
+      </div>
+    `;
+  }
+
+  let html = `
+    <div class="c-head">
+      <span class="mark" style="color:#38bdf8">${SVG_CPU}</span>
+      <span class="c-title">${textCopy('System Resources')}</span>
+    </div>
+    <div class="c-sub">${textCopy('Updated')} ${ago(hwMetrics.timestamp || Date.now())}</div>
+
+    ${appSection}
+
+    <div class="hw-container">
+      <!-- CPU Box -->
+      <div class="hw-metric-box ${hwRingMetric==='cpu'?'active-metric':''}" onclick="setHwRingMetric('cpu')" title="${textCopy('Scroll notch ring to cycle metric')}">
+        <div class="hw-box-head">
+          <span>${SVG_CPU} ${textCopy('Processor')} (${cpuCores} ${textCopy('Cores')})</span>
+          <span class="hw-box-val" style="color:${tone(cpuPct/100)}">${cpuPct}%</span>
+        </div>
+        <div class="w-track">
+          <div class="w-fill" style="width:${Math.min(cpuPct, 100)}%;background:${tone(cpuPct/100)}"></div>
+        </div>
+      </div>
+
+      <!-- RAM Box -->
+      <div class="hw-metric-box ${hwRingMetric==='ram'?'active-metric':''}" onclick="setHwRingMetric('ram')" title="${textCopy('Scroll notch ring to cycle metric')}">
+        <div class="hw-box-head">
+          <span>${SVG_RAM} ${textCopy('Memory')}</span>
+          <span class="hw-box-val" style="color:${tone(ramPct/100)}">${ramUsedGb} / ${ramTotGb} GB (${ramPct}%)</span>
+        </div>
+        <div class="w-track">
+          <div class="w-fill" style="width:${Math.min(ramPct, 100)}%;background:${tone(ramPct/100)}"></div>
+        </div>
+      </div>
+
+      <!-- Network Speeds Box -->
+      <div class="hw-metric-box ${hwRingMetric==='net'?'active-metric':''}" onclick="setHwRingMetric('net')" title="${textCopy('Scroll notch ring to cycle metric')}">
+        <div class="hw-box-head">
+          <span>${SVG_ARROWS} ${textCopy('Network')}</span>
+          <span class="hw-box-val" style="color:#38bdf8">↓ ${hwMetrics.net_download_speed}</span>
+        </div>
+        <div class="hw-net-grid">
+          <div class="hw-net-item"><span>↓ ${textCopy('Download')}:</span> <b>${hwMetrics.net_download_speed}</b></div>
+          <div class="hw-net-item"><span>↑ ${textCopy('Upload')}:</span> <b>${hwMetrics.net_upload_speed}</b></div>
+        </div>
+      </div>
+
+      <!-- Daily Traffic Box -->
+      <div class="hw-metric-box ${hwRingMetric==='daily'?'active-metric':''}" onclick="setHwRingMetric('daily')" title="${textCopy('Scroll notch ring to cycle metric')}">
+        <div class="hw-box-head">
+          <span>${SVG_DAILY} ${textCopy('Daily Data')}</span>
+          <span class="hw-box-val" style="color:#c084fc">${hwMetrics.daily_download_str}</span>
+        </div>
+        <div class="hw-net-grid">
+          <div class="hw-net-item"><span>${textCopy('Today')}:</span> <b>${hwMetrics.daily_download_str} ↓</b></div>
+          <div class="hw-net-item"><span>${textCopy('Upload')}:</span> <b>${hwMetrics.daily_upload_str} ↑</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action Controls -->
+    <div class="hw-actions">
+      <div class="hw-btn ${isHudOn ? 'active' : ''}" id="btn-toggle-hud" title="${textCopy('Gaming HUD')}">
+        ${SVG_GAME} ${textCopy('HUD')} [${isHudOn ? 'ON' : 'OFF'}]
+      </div>
+      <div class="hw-btn ${isClickthrough ? 'active' : ''}" id="btn-toggle-ct" title="${textCopy('Click-thru')}">
+        ${textCopy('Click-thru')} [${isClickthrough ? 'ON' : 'OFF'}]
+      </div>
+    </div>
+
+    <div class="hw-hint">
+      <span>💡 ${textCopy('Scroll notch ring to cycle metric')}</span>
+    </div>
+
+    <div class="c-scale">
+      <input id="scale-range" type="range" min="40" max="100" step="5" value="${scalePct}" aria-label="${textCopy('Notch size')}" title="${textCopy('Notch size')}">
+      <span class="c-scale-val" id="scale-val">${scalePct}%</span>
+    </div>
+  `;
+
+  c.innerHTML = html;
+  wireScaleRow();
+  placeCard();
+
+  const btnHud = c.querySelector('#btn-toggle-hud');
+  if(btnHud){
+    btnHud.addEventListener('click', e => {
+      e.stopPropagation();
+      invoke('toggle_overlay', {}).then(vis => {
+        hwConfig.overlay_enabled = vis;
+        renderHardwareCard(c);
+      }).catch(()=>{});
+    });
+  }
+  const btnCt = c.querySelector('#btn-toggle-ct');
+  if(btnCt){
+    btnCt.addEventListener('click', e => {
+      e.stopPropagation();
+      const target = !hwConfig.overlay_clickthrough;
+      invoke('set_overlay_clickthrough', { clickthrough: target }).then(() => {
+        hwConfig.overlay_clickthrough = target;
+        renderHardwareCard(c);
+      }).catch(()=>{});
+    });
+  }
+}
+
+// The card follows the hovered cell: centred on it, tail pointing at it
+function placeCard(){
+  const edge = (appearanceConfig && appearanceConfig.screen_edge) || 'right';
+  const cell=pill.querySelector(`.cell[data-p="${hoverId}"]`)||pill;
+  const cr=cell.getBoundingClientRect();
+  const ch=card.offsetHeight||0, cw=card.offsetWidth||0;
+
+  if(edge === 'top'){
+    const cx=cr.left+cr.width/2;
+    const W=innerWidth;
+    let left=Math.round(cx-cw/2);
+    left=Math.max(8,Math.min(left,W-cw-8));
+    card.style.left=left+'px';
+    card.style.right='auto';
+    card.style.top=(cr.bottom+12)+'px';
+    card.style.transform='none';
+    card.style.setProperty('--tail-x',Math.max(16,Math.min(cw-16,Math.round(cx-left)))+'px');
+  } else {
+    const cy=cr.top+cr.height/2;
+    const H=innerHeight;
+    let top=Math.round(cy-ch/2); top=Math.max(8,Math.min(top,H-ch-8));
+    card.style.top=top+'px'; card.style.transform='none';
+    if(edge === 'left'){
+      card.style.left=(cr.right+12)+'px';
+      card.style.right='auto';
+    } else {
+      card.style.right=(innerWidth-cr.left+12)+'px';
+      card.style.left='auto';
+    }
+    card.style.setProperty('--tail',Math.max(16,Math.min(ch-16,Math.round(cy-top)))+'px');
+  }
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+/* Hover: stays expanded while either the pill or the card is under the cursor; collapses after a 250 ms grace period (upstream motion rule) */
+const card=document.getElementById('card'), pill=document.getElementById('pill'), ctxMenu=document.getElementById('ctx-menu');
+let hideTimer=null;
+function showCard(){
+  if(ctxMenu&&ctxMenu.classList.contains('show')) return;
+  clearTimeout(hideTimer);
+  card.classList.add('show');
+  renderCard();
+  armWatchdog();
+} // show first, then render: placeCard needs offsetHeight
+function hideCard(){
+  card.classList.remove('show');
+  reportHot();
+  if(appearanceConfig && appearanceConfig.autohide) scheduleAutohide();
+}
+function hideContextMenu(){
+  if(!ctxMenu||!ctxMenu.classList.contains('show')) return;
+  ctxMenu.classList.remove('show');
+  reportHot();
+  if(appearanceConfig && appearanceConfig.autohide) scheduleAutohide();
+}
+function scheduleHide(){
+  if(ctxMenu&&ctxMenu.classList.contains('show')) return;
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{
+    hideCard();
+  },250);
+}
+// ===== Diagnostics + geometry =====
+function jslog(m){invoke('log_js',{msg:String(m)}).catch(()=>{});}
+function callq(cmd,args){ // invoke with visible failure: any command error is reported on screen (a silent .catch used to swallow them)
+  return invoke(cmd,args).catch(e=>{notice(cmd+' failed: '+(e&&e.message||e));throw e;});
+}
+// Hot rectangles are reported in physical pixels (multiplied by this page's real DPR), so the Rust side does no conversion — WebView2's DPR and the window scale can disagree
+function rectOf(el){const r=el.getBoundingClientRect(),k=window.devicePixelRatio||1;return [r.left*k,r.top*k,r.width*k,r.height*k];}
+/* Rust gates click-through on these, so they are reported whenever the pill or card moves, not only
+   when the card opens: a stale pill rectangle is a pill that cannot be clicked. */
+function reportHot(){
+  const open=card.classList.contains('show');
+  const menuOpen=ctxMenu&&ctxMenu.classList.contains('show');
+  const rects=[rectOf(pill)];
+  if(open) rects.push(rectOf(card));
+  if(menuOpen){
+    rects.push(rectOf(ctxMenu));
+    // Bridge rect covering both pill and context menu with padding
+    const pr=pill.getBoundingClientRect(), mr=ctxMenu.getBoundingClientRect(), k=window.devicePixelRatio||1;
+    const pad=12*k;
+    const bx0=Math.min(pr.left,mr.left)*k - pad;
+    const by0=Math.min(pr.top,mr.top)*k - pad;
+    const bx1=Math.max(pr.right,mr.right)*k + pad;
+    const by1=Math.max(pr.bottom,mr.bottom)*k + pad;
+    rects.push([bx0, by0, bx1-bx0, by1-by0]);
+  }
+  // When docked at screen edge, include an edge trigger zone so cursor arrival wakes the notch smoothly
+  if(pill && pill.classList.contains('docked')){
+    const k=window.devicePixelRatio||1;
+    const edge=(appearanceConfig && appearanceConfig.screen_edge) || 'right';
+    const pr=pill.getBoundingClientRect();
+    const zone=Math.max(28, ((appearanceConfig && appearanceConfig.autohide_peek) ?? 14) + 16) * k;
+    if(edge === 'right'){
+      rects.push([(innerWidth * k) - zone, (pr.top - 20) * k, zone, (pr.height + 40) * k]);
+    } else if(edge === 'left'){
+      rects.push([0, (pr.top - 20) * k, zone, (pr.height + 40) * k]);
+    } else if(edge === 'top'){
+      rects.push([(pr.left - 20) * k, 0, (pr.width + 40) * k, zone]);
+    }
+  }
+  callq('set_hot',{rects,expanded:open||menuOpen}).catch(()=>{});
+}
+
+const KNOWN_PROVIDERS=[
+  {id:'claude',name:'Claude Code'},
+  {id:'codex',name:'Codex'},
+  {id:'cursor',name:'Cursor'},
+  {id:'gemini',name:'Antigravity'},
+  {id:'hardware',name:'System Resources'},
+  {id:'opencode',name:'OpenCode'},
+  {id:'deepseek',name:'DeepSeek'},
+  {id:'zed',name:'Zed AI'},
+  {id:'ollama',name:'Ollama'}
+];
+
+function isProviderActive(id){
+  if(!Array.isArray(notchSlots)||notchSlots.length===0){
+    if(id==='hardware') return true;
+    const snap={claude:usage,codex:codexSnap,cursor:cursorSnap,gemini:agSnap}[id];
+    if(snap) return snap.status!=='absent';
+    return glyphs[id] != null;
+  }
+  return notchSlots.some(s=>s&&s.provider===id);
+}
+
+function toggleProvider(id){
+  let current=[];
+  if(Array.isArray(notchSlots)&&notchSlots.length>0){
+    current=notchSlots.map(s=>s.provider);
+  }else{
+    current=providers().map(p=>p.id);
+  }
+
+  const active=current.includes(id);
+  if(active){
+    if(current.length<=1){
+      notice(uiLang==='ru'?'Минимум один провайдер должен оставаться активным':'At least one provider must remain visible');
+      return;
+    }
+    current=current.filter(p=>p!==id);
+  }else{
+    current.push(id);
+  }
+
+  notchSlots=current.map(p=>({provider:p,window:''}));
+  callq('set_notch_slots',{slots:notchSlots}).catch(e=>jslog('set_notch_slots error: '+e));
+  renderRing();
+  if(card&&card.classList.contains('show')) renderCard();
+  renderContextMenu();
+  armWatchdog();
+}
+
+function renderContextMenu(){
+  if(!ctxMenu) return;
+  let html=`<div class="ctx-header">${uiLang==='ar'?'المزودون النشطون':(uiLang==='ru'?'Провайдеры':'Active Providers')}</div>`;
+  const svgCheck = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+  for(const p of KNOWN_PROVIDERS){
+    const active=isProviderActive(p.id);
+    const displayName = (p.id === 'hardware') ? textCopy('System Resources') : p.name;
+    html+=`<div class="ctx-item" data-provider="${p.id}">
+      <span class="ctx-check">${active ? svgCheck : ''}</span>
+      <span class="ctx-label">${displayName}</span>
+    </div>`;
+  }
+  html+=`<div class="ctx-sep"></div>`;
+  html+=`<div class="ctx-action" data-act="hud"><span class="ctx-icon">${SVG_GAME}</span><span class="ctx-label">${textCopy('Gaming HUD')}</span></div>`;
+  html+=`<div class="ctx-action" data-act="refresh"><span class="ctx-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15.3-6.4L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15.3 6.4L3 16"></path></svg></span><span class="ctx-label">${uiLang==='ar'?'تحديث الاستهلاك':(uiLang==='ru'?'Обновить':'Refresh Usage')}</span></div>`;
+  html+=`<div class="ctx-action" data-act="settings"><span class="ctx-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span><span class="ctx-label">${uiLang==='ar'?'الإعدادات…':(uiLang==='ru'?'Настройки':'Settings')}</span></div>`;
+  html+=`<div class="ctx-action" data-act="dock"><span class="ctx-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line><path d="m10 9 3 3-3 3"></path></svg></span><span class="ctx-label">${uiLang==='ar'?'طي / إخفاء الشريط':(uiLang==='ru'?'Скрыть':'Hide / Dock Notch')}</span></div>`;
+  ctxMenu.innerHTML=html;
+
+  for(const item of ctxMenu.querySelectorAll('.ctx-item')){
+    item.addEventListener('click',e=>{
+      e.stopPropagation();
+      toggleProvider(item.dataset.provider);
+    });
+  }
+  const actHud=ctxMenu.querySelector('[data-act="hud"]');
+  if(actHud){
+    actHud.addEventListener('click',e=>{
+      e.stopPropagation();
+      hideContextMenu();
+      invoke('toggle_overlay',{}).then(vis=>{
+        hwConfig.overlay_enabled = vis;
+      }).catch(()=>{});
+    });
+  }
+  const actRefresh=ctxMenu.querySelector('[data-act="refresh"]');
+  if(actRefresh){
+    actRefresh.addEventListener('click',e=>{
+      e.stopPropagation();
+      hideContextMenu();
+      invoke('refresh_usage').catch(()=>{});
+    });
+  }
+  const actSettings=ctxMenu.querySelector('[data-act="settings"]');
+  if(actSettings){
+    actSettings.addEventListener('click',e=>{
+      e.stopPropagation();
+      hideContextMenu();
+      invoke('open_settings').catch(()=>{});
+    });
+  }
+  const actDock=ctxMenu.querySelector('[data-act="dock"]');
+  if(actDock){
+    actDock.addEventListener('click',e=>{
+      e.stopPropagation();
+      hideContextMenu();
+      if(pill && !pill.classList.contains('docked')){
+        pill.classList.add('docked');
+        armWatchdog();
+      }
+    });
+  }
+}
+
+function showContextMenu(clientX, clientY){
+  clearTimeout(hideTimer);
+  card.classList.remove('show');
+  renderContextMenu();
+  ctxMenu.classList.add('show');
+
+  const edge = (appearanceConfig && appearanceConfig.screen_edge) || 'right';
+  const mh=ctxMenu.offsetHeight||230;
+  const mw=ctxMenu.offsetWidth||196;
+  const H=innerHeight, W=innerWidth;
+
+  if(edge === 'top'){
+    ctxMenu.style.top='96px';
+    let left = (clientX != null) ? Math.round(clientX - mw / 2) : Math.round(W / 2 - mw / 2);
+    left = Math.max(10, Math.min(left, W - mw - 10));
+    ctxMenu.style.left=left+'px';
+    ctxMenu.style.right='auto';
+  } else if(edge === 'left'){
+    let top = (clientY != null) ? Math.round(clientY - mh / 2) : Math.round(H / 2 - mh / 2);
+    top=Math.max(8,Math.min(top,H-mh-8));
+    ctxMenu.style.top=top+'px';
+    ctxMenu.style.left='80px';
+    ctxMenu.style.right='auto';
+  } else {
+    let top = (clientY != null) ? Math.round(clientY - mh / 2) : Math.round(H / 2 - mh / 2);
+    top=Math.max(8,Math.min(top,H-mh-8));
+    ctxMenu.style.top=top+'px';
+    ctxMenu.style.right='80px';
+    ctxMenu.style.left='auto';
+  }
+  ctxMenu.style.transform='none';
+
+  reportHot();
+}
+/* ---- Notch size ---------------------------------------------------------
+   The pill alone is scaled, with CSS `zoom` rather than `transform`: the pill is centred by
+   `top:50%; transform:translateY(-50%)`, so assigning to `transform` here would wipe that out and
+   throw the pill to the top of the screen. `zoom` changes the element's laid-out size instead, so
+   the existing centring keeps working and `right:0` keeps it against the edge.
+   The hover card is deliberately left at full size: it holds the slider, and a slider that shrank
+   as it was dragged would slide out from under the cursor. */
+function clampPct(v){const n=Math.round(Number(v));return isFinite(n)?Math.max(40,Math.min(100,n)):100;}
+function applyPillScale(){ if(pill) pill.style.zoom=String(scalePct/100); }
+function applyScale(v){
+  scalePct=clampPct(v);
+  const lab=document.getElementById('scale-val'); if(lab) lab.textContent=scalePct+'%';
+  applyPillScale();                                       // draw it at once; do not wait on Rust
+  // One save when the drag settles, not one per pixel: set_scale writes the config file and
+  // broadcasts an event every time it is called. Same 150ms wait the settings window's slider uses.
+  clearTimeout(scaleSaveT);
+  scaleSaveT=setTimeout(()=>{invoke('set_scale',{scale:scalePct/100}).catch(()=>{});},150); // percent → fraction: 60 becomes 0.60
+  // The pill just changed size, so the hot rectangles the watchdog checks are stale
+  clearTimeout(scaleT);
+  scaleT=setTimeout(()=>{if(card.classList.contains('show')){placeCard();armWatchdog();}},120);
+}
+function wireScaleRow(){
+  const r=document.getElementById('scale-range'); if(!r) return;
+  r.value=String(scalePct);
+  r.addEventListener('input',()=>applyScale(r.value)); // live while dragging, and on arrow keys
+  r.addEventListener('pointerdown',()=>{scaleDragging=true;});
+  r.addEventListener('mousedown',()=>{scaleDragging=true;});
+}
+document.addEventListener('pointerup',()=>{scaleDragging=false;});
+document.addEventListener('pointercancel',()=>{scaleDragging=false;});
+document.addEventListener('mouseup',()=>{scaleDragging=false;});
+function loadScale(){
+  invoke('get_scale').then(v=>{
+    const n=Number(v); if(isFinite(n)&&n>0) scalePct=clampPct(Math.round(n*100));
+    applyPillScale(); wireScaleRow();
+  }).catch(()=>{applyPillScale();});
+}
+
+function armWatchdog(){
+  requestAnimationFrame(reportHot); // wait one frame so renderCard's new content is laid out before measuring
+}
+// Viewport fit (pure front-end fallback, independent of Rust): the window is 340 × primary scale physical px,
+// so if this page's CSS viewport is not 340 wide the WebView's DPR disagrees with the monitor; CSS zoom pulls the layout back to the design size.
+function fitZoom(){
+  const isTop = (appearanceConfig && appearanceConfig.screen_edge === 'top') || (innerWidth >= 450);
+  const targetW = isTop ? 500 : 360;
+  const z = innerWidth / targetW;
+  document.documentElement.style.zoom = (Math.abs(z - 1) > 0.02) ? String(z) : '';
+  return z;
+}
+function reportDpr(){
+  try {
+    const z = fitZoom();
+    jslog(`dpr=${window.devicePixelRatio} inner=${innerWidth}x${innerHeight} cssZoom=${z.toFixed(3)}`);
+    callq('report_dpr',{dpr:window.devicePixelRatio||1,w:innerWidth,h:innerHeight}).catch(()=>{});
+  } catch(e) {
+    console.error('reportDpr error:', e);
+  }
+}
+reportDpr();
+window.addEventListener('resize',()=>{clearTimeout(window._dprT);window._dprT=setTimeout(()=>{reportDpr();reportHot();},120);});
+matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener('change',reportDpr);
+
+/* Collapse test: no trust in element-level mouseenter/mouseleave/e.target at all —
+   pure geometry: is the cursor (clientX/Y) inside pill rect ∪ card rect ∪ their bounding box?
+   Leaving the window: document mouseout (relatedTarget=null) plus the Rust watchdog (system cursor) as a second line. */
+function inRect(x,y,r,pad){return x>=r.left-pad&&y>=r.top-pad&&x<r.right+pad&&y<r.bottom+pad;}
+function cellAt(x,y){
+  for(const el of pill.querySelectorAll('.cell')){ if(inRect(x,y,el.getBoundingClientRect(),6)) return el.dataset.p; }
+  return null;
+}
+function pointerInHot(x,y){
+  if(ctxMenu&&ctxMenu.classList.contains('show')){
+    const m=ctxMenu.getBoundingClientRect();
+    const p=pill.getBoundingClientRect();
+    const minX=Math.min(p.left,m.left)-16;
+    const maxX=Math.max(p.right,m.right)+16;
+    const minY=Math.min(p.top,m.top)-16;
+    const maxY=Math.max(p.bottom,m.bottom)+16;
+    if(x>=minX && x<=maxX && y>=minY && y<=maxY) return true;
+  }
+  const p=pill.getBoundingClientRect();
+  if(inRect(x,y,p,6))return true;
+
+  // Docked peek hit-testing depending on edge:
+  const edge = (appearanceConfig && appearanceConfig.screen_edge) || 'right';
+  const peek = (appearanceConfig && appearanceConfig.autohide_peek) ?? 14;
+  const triggerZone = Math.max(16, peek + 8);
+
+  if(pill.classList.contains('docked')){
+    if(edge === 'right' && x >= innerWidth - triggerZone && y >= p.top - 15 && y <= p.bottom + 15) return true;
+    if(edge === 'left' && x <= triggerZone && y >= p.top - 15 && y <= p.bottom + 15) return true;
+    if(edge === 'top' && y <= triggerZone && x >= p.left - 15 && x <= p.right + 15) return true;
+  }
+
+  if(!card.classList.contains('show'))return false;
+  const c=card.getBoundingClientRect();
+  if(inRect(x,y,c,4))return true;
+  const u={left:Math.min(p.left,c.left),top:Math.min(p.top,c.top),right:Math.max(p.right,c.right),bottom:Math.max(p.bottom,c.bottom)};
+  return inRect(x,y,u,0);
+}
+let hideLogged=0;
+document.addEventListener('mousemove',e=>{
+  if(dragging)return; // no card while dragging
+  const edge = (appearanceConfig && appearanceConfig.screen_edge) || 'right';
+  const peek = (appearanceConfig && appearanceConfig.autohide_peek) ?? 14;
+  const isNearEdge = (edge === 'right' && e.clientX >= innerWidth - Math.max(50, peek + 20)) ||
+                     (edge === 'left' && e.clientX <= Math.max(50, peek + 20)) ||
+                     (edge === 'top' && e.clientY <= Math.max(50, peek + 20));
+
+  if(appearanceConfig.autohide && (isNearEdge || pointerInHot(e.clientX, e.clientY))){
+    wakeNotch();
+  }
+  if(ctxMenu&&ctxMenu.classList.contains('show')){
+    clearTimeout(hideTimer);
+    return; // keep context menu stable while moving cursor
+  }
+  const hot=pointerInHot(e.clientX,e.clientY);
+  if(hot){
+    clearTimeout(hideTimer);
+    const id=cellAt(e.clientX,e.clientY);
+    if(id&&id!==hoverId){ hoverId=id; if(card.classList.contains('show')){ renderCard(); armWatchdog(); } }
+    if(!card.classList.contains('show')) showCard();
+  }
+  else if(card.classList.contains('show')){
+    if(hideLogged++<5) jslog(`mousemove left the hot area -> collapse at ${e.clientX},${e.clientY}`);
+    scheduleHide();
+  } else {
+    scheduleAutohide();
+  }
+});
+document.addEventListener('mouseout',e=>{ // relatedTarget null = the cursor left the page
+  if(ctxMenu&&ctxMenu.classList.contains('show')) return;
+  if(!e.relatedTarget){
+    if(card.classList.contains('show')){
+      if(hideLogged++<5) jslog('mouseout left the page -> collapse');
+      scheduleHide();
+    }
+    scheduleAutohide();
+  }
+});
+listen('pointer_left',()=>{
+  if(scaleDragging)return;
+  hideContextMenu();
+  clearTimeout(hideTimer);
+  hideCard();
+  scheduleAutohide();
+}).catch(()=>{});
+
+window.addEventListener('blur',()=>{
+  hideContextMenu();
+  hideCard();
+});
+// The size can also be changed from the settings window, which is a different window entirely.
+// Ignore it while this page's own slider is being dragged, or the two would fight each other.
+listen('scale',e=>{
+  if(scaleDragging) return;
+  const n=Number(e.payload); if(!isFinite(n)||n<=0) return;
+  scalePct=clampPct(Math.round(n*100));
+  applyPillScale();
+  const r=document.getElementById('scale-range');
+  if(r){r.value=String(scalePct);const lab=document.getElementById('scale-val');if(lab)lab.textContent=scalePct+'%';}
+}).catch(()=>{});
+// Card content changes change its height -> report the hot rectangles again
+listen('usage',()=>{if(card.classList.contains('show'))armWatchdog();}).catch(()=>{});
+listen('state',()=>{if(card.classList.contains('show'))armWatchdog();}).catch(()=>{});
+/* The pill can be dragged up and down the right edge. Press and move more than 4 px = drag (handed to Rust,
+   which follows the system cursor; the card is collapsed first); release without moving = click (opens the provider's usage page). */
+let press=null, dragging=false;
+pill.addEventListener('mouseenter', () => {
+  wakeNotch();
+});
+pill.addEventListener('mouseleave', () => {
+  if(!card.classList.contains('show') && (!ctxMenu || !ctxMenu.classList.contains('show'))){
+    scheduleAutohide();
+  }
+});
+pill.addEventListener('mousedown',e=>{ if(e.button!==0)return; press={x:e.clientX,y:e.clientY,id:cellAt(e.clientX,e.clientY)||hoverId}; });
+// Consolidated right-click: suppresses default browser menu everywhere and presents unified CodeNotch menu
+document.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  showContextMenu(e.clientX, e.clientY);
+});
+document.addEventListener('pointerdown',e=>{
+  if(ctxMenu&&ctxMenu.classList.contains('show')){
+    if(!ctxMenu.contains(e.target)){
+      hideContextMenu();
+    }
+  }
+  if(card&&card.classList.contains('show')){
+    if(!card.contains(e.target) && !pill.contains(e.target)){
+      hideCard();
+    }
+  }
+});
+document.addEventListener('mousedown',e=>{
+  if(ctxMenu&&ctxMenu.classList.contains('show')){
+    if(!ctxMenu.contains(e.target)){
+      hideContextMenu();
+    }
+  }
+  if(card&&card.classList.contains('show')){
+    if(!card.contains(e.target) && !pill.contains(e.target)){
+      hideCard();
+    }
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    hideContextMenu();
+  }
+});
+document.addEventListener('mousemove',e=>{
+  if(!press||dragging)return;
+  if(Math.abs(e.clientY-press.y)>4||Math.abs(e.clientX-press.x)>4){
+    dragging=true; clearTimeout(hideTimer); hideCard(); hideContextMenu();
+    invoke('drag_begin').catch(err=>{notice('drag_begin failed: '+err);dragging=false;});
+  }
+});
+document.addEventListener('mouseup',e=>{
+  if(e.button!==0)return;
+  if(press&&!dragging){
+    if(press.id === 'hardware'){
+      invoke('toggle_overlay', {}).then(vis => {
+        hwConfig.overlay_enabled = vis;
+        if(card && card.classList.contains('show') && hoverId === 'hardware'){
+          renderCard();
+        }
+      }).catch(()=>{});
+    } else {
+      invoke('open_provider_page',{provider:press.id}).catch(()=>{});
+    }
+  }
+  press=null;
+});
+
+// Mouse wheel on the hardware cell cycles displayed metric (CPU <-> RAM <-> Net <-> Daily)
+window.addEventListener('wheel', e => {
+  const targetCell = e.target.closest && e.target.closest('.cell');
+  if(targetCell && targetCell.dataset.p === 'hardware'){
+    e.preventDefault();
+    e.stopPropagation();
+    cycleHwMetric(e.deltaY > 0);
+  }
+}, { passive: false });
+
+listen('drag_end',()=>{dragging=false;press=null;reportHot();}).catch(()=>{});
+
+function notice(msg){
+  const n=document.getElementById('notice');
+  n.textContent=msg;n.classList.add('show');
+  clearTimeout(n._h);n._h=setTimeout(()=>n.classList.remove('show'),6000);
+}
+
+listen('usage',e=>{usage=e.payload||usage;renderRing();if(card.classList.contains('show'))renderCard();})
+  .catch(e=>notice('listen(usage) failed: '+e));
+listen('state',e=>{stateSnap=e.payload||stateSnap;setUiLanguage(stateSnap.lang_resolved);renderRing();if(card.classList.contains('show'))renderCard();})
+  .catch(e=>notice('listen(state) failed: '+e));
+listen('notice',e=>notice(e.payload)).catch(()=>{});
+listen('codex',e=>{codexSnap=e.payload||codexSnap;renderRing();if(card.classList.contains('show'))renderCard();}).catch(()=>{});
+listen('cursor',e=>{cursorSnap=e.payload||cursorSnap;renderRing();if(card.classList.contains('show'))renderCard();}).catch(()=>{});
+invoke('get_cursor').then(u=>{cursorSnap=u||cursorSnap;renderRing();}).catch(()=>{});
+listen('antigravity',e=>{agSnap=e.payload||agSnap;renderRing();if(card.classList.contains('show'))renderCard();}).catch(()=>{});
+invoke('get_antigravity').then(u=>{agSnap=u||agSnap;renderRing();}).catch(()=>{});
+loadScale();
+invoke('get_notch_slots').then(v=>{if(Array.isArray(v)){notchSlots=v;renderRing();}}).catch(()=>{});
+listen('notch_slots',e=>{
+  notchSlots=Array.isArray(e.payload)?e.payload:null;
+  renderRing();
+  if(card.classList.contains('show')){renderCard();armWatchdog();}
+}).catch(()=>{});
+listen('glyphs',e=>{glyphs=e.payload||glyphs;renderRing();if(card.classList.contains('show'))renderCard();}).catch(()=>{});
+listen('activity',e=>{activity=e.payload||activity;renderRing();if(card.classList.contains('show'))renderCard();}).catch(()=>{});
+invoke('get_activity').then(a=>{activity=a||activity;renderRing();}).catch(()=>{});
+invoke('get_glyphs').then(g=>{glyphs=g||glyphs;renderRing();}).catch(()=>{});
+invoke('get_codex').then(u=>{codexSnap=u||codexSnap;renderRing();}).catch(()=>{});
+invoke('get_usage').then(u=>{usage=u||usage;renderRing();}).catch(e=>notice('get_usage failed: '+e));
+invoke('get_state').then(s=>{stateSnap=s||stateSnap;setUiLanguage(stateSnap.lang_resolved);renderRing();}).catch(()=>{});
+
+// Hardware telemetry polling & overlay event synchronisation
+function fetchHardwareMetrics(){
+  invoke('get_system_metrics').then(m => {
+    if(m){
+      hwMetrics = m;
+      if(providers().some(p => p.id === 'hardware')){
+        updateHardwareCell();
+      }
+      if(card && card.classList.contains('show') && hoverId === 'hardware'){
+        renderCard();
+      }
+    }
+  }).catch(()=>{});
+}
+
+function startHardwarePolling(){
+  fetchHardwareMetrics();
+  if(!hwPollTimer){
+    hwPollTimer = setInterval(fetchHardwareMetrics, 1200);
+  }
+}
+
+invoke('get_hardware_config').then(cfg => {
+  if(cfg) hwConfig = cfg;
+}).catch(()=>{});
+
+listen('overlay_visibility', e => {
+  hwConfig.overlay_enabled = e.payload;
+  if(card && card.classList.contains('show') && hoverId === 'hardware'){
+    renderCard();
+  }
+}).catch(()=>{});
+
+listen('overlay_clickthrough_state', e => {
+  hwConfig.overlay_clickthrough = e.payload;
+  if(card && card.classList.contains('show') && hoverId === 'hardware'){
+    renderCard();
+  }
+}).catch(()=>{});
+
+startHardwarePolling();
+
+function wakeNotch(){
+  clearTimeout(autohideTimer);
+  if(pill && pill.classList.contains('docked')){
+    pill.classList.remove('docked');
+    armWatchdog();
+  }
+}
+
+function scheduleAutohide(instant = false){
+  if(!appearanceConfig || !appearanceConfig.autohide) return;
+  clearTimeout(autohideTimer);
+  if(card.classList.contains('show') || (ctxMenu && ctxMenu.classList.contains('show')) || scaleDragging || dragging) return;
+
+  const secs = appearanceConfig.autohide_delay ?? 5;
+  if(secs === 0 || instant){
+    if(pill && !pill.classList.contains('docked')){
+      pill.classList.add('docked');
+      armWatchdog();
+    }
+    return;
+  }
+
+  autohideTimer = setTimeout(() => {
+    if(!card.classList.contains('show') && (!ctxMenu || !ctxMenu.classList.contains('show')) && !scaleDragging && !dragging){
+      if(pill && !pill.classList.contains('docked')){
+        pill.classList.add('docked');
+        armWatchdog();
+      }
+    }
+  }, secs * 1000);
+}
+
+function getLuminousAccent(r, g, b, isDark = true){
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  if(isDark){
+    if(lum < 0.45){
+      const factor = 0.58;
+      const nr = Math.min(255, Math.round(r + (255 - r) * factor));
+      const ng = Math.min(255, Math.round(g + (255 - g) * factor));
+      const nb = Math.min(255, Math.round(b + (255 - b) * factor));
+      return `rgb(${nr}, ${ng}, ${nb})`;
+    }
+  } else {
+    if(lum > 0.65){
+      const nr = Math.round(r * 0.45);
+      const ng = Math.round(g * 0.45);
+      const nb = Math.round(b * 0.45);
+      return `rgb(${nr}, ${ng}, ${nb})`;
+    }
+  }
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function updateMaterialStyles(){
+  const style = appearanceConfig.style || 'windows';
+  const customHex = appearanceConfig.custom_accent || '#0078d4';
+  const edge = appearanceConfig.screen_edge || 'right';
+  const peek = appearanceConfig.autohide_peek ?? 14;
+  const root = document.documentElement;
+
+  document.body.className = 'edge-' + edge + ' theme-' + style;
+  root.style.setProperty('--autohide-peek', peek + 'px');
+
+  let rgb = `${systemTheme.r}, ${systemTheme.g}, ${systemTheme.b}`;
+  let hex = systemTheme.hex;
+
+  if(style === 'custom'){
+    hex = customHex;
+    const clean = hex.replace('#','');
+    const c = parseInt(clean, 16);
+    if(!isNaN(c) && clean.length === 6){
+      const r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+      rgb = `${r}, ${g}, ${b}`;
+    }
+  }
+
+  root.style.setProperty('--accent-rgb', rgb);
+  root.style.setProperty('--accent-hex', hex);
+
+  if(style === 'oled'){
+    // Pure 100% OLED deep black - high contrast, zero blur, zero accent halo
+    root.style.setProperty('--pill-bg', '#000000');
+    root.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.96)');
+    root.style.setProperty('--ctx-bg', 'rgba(10, 10, 14, 0.96)');
+    root.style.setProperty('--card-tail-color', '#000000');
+    root.style.setProperty('--card-filter', 'none');
+    root.style.setProperty('--ctx-filter', 'none');
+    root.style.setProperty('--pill-filter', 'none');
+    root.style.setProperty('--pill-border', 'rgba(255, 255, 255, 0.25)');
+    root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.20)');
+    root.style.setProperty('--ctx-border', 'rgba(255, 255, 255, 0.20)');
+    root.style.setProperty('--pill-shadow', '-4px 0 24px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--pill-dock-shadow', '-2px 0 12px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--pill-shadow-left', '4px 0 24px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--pill-dock-shadow-left', '2px 0 12px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--pill-shadow-top', '0 8px 28px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--pill-dock-shadow-top', '0 2px 12px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--pill-hover-shadow', '-6px 0 30px rgba(0, 0, 0, 1.0)');
+    root.style.setProperty('--pill-hover-border', 'rgba(255, 255, 255, 0.50)');
+    root.style.setProperty('--card-shadow', '0 18px 40px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--ctx-shadow', '0 16px 38px rgba(0, 0, 0, 0.95)');
+    root.style.setProperty('--card-divider', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--fillet-base', '#000000');
+    root.style.setProperty('--fillet-stroke', 'rgba(255, 255, 255, 0.25)');
+    root.style.setProperty('--text-primary', '#ffffff');
+    root.style.setProperty('--text-secondary', '#e2e8f0');
+    root.style.setProperty('--text-muted', '#94a3b8');
+    root.style.setProperty('--text-glyph', '#f8fafc');
+    root.style.setProperty('--text-note', '#f1f5f9');
+    root.style.setProperty('--text-reset', '#f1f5f9');
+    root.style.setProperty('--reset-badge-bg', 'rgba(255, 255, 255, 0.10)');
+    root.style.setProperty('--reset-badge-border', 'rgba(255, 255, 255, 0.16)');
+    root.style.setProperty('--track-bg', 'rgba(255, 255, 255, 0.16)');
+    root.style.setProperty('--note-bg', 'rgba(255, 255, 255, 0.08)');
+    root.style.setProperty('--note-border', 'rgba(255, 255, 255, 0.20)');
+    root.style.setProperty('--note-accent', '#ffffff');
+    root.style.setProperty('--ctx-hover', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--check-color', '#34d399');
+    root.style.setProperty('--check-glow', 'rgba(52, 211, 153, 0.6)');
+  } else if(style === 'solid'){
+    // Solid matte graphite dark - clean, opaque, and minimal
+    root.style.setProperty('--pill-bg', '#16161a');
+    root.style.setProperty('--card-bg', '#1a1a24');
+    root.style.setProperty('--ctx-bg', '#1c1c26');
+    root.style.setProperty('--card-tail-color', '#1a1a24');
+    root.style.setProperty('--card-filter', 'none');
+    root.style.setProperty('--ctx-filter', 'none');
+    root.style.setProperty('--pill-filter', 'none');
+    root.style.setProperty('--pill-border', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.14)');
+    root.style.setProperty('--ctx-border', 'rgba(255, 255, 255, 0.14)');
+    root.style.setProperty('--pill-shadow', '-4px 0 20px rgba(0, 0, 0, 0.65)');
+    root.style.setProperty('--pill-dock-shadow', '-2px 0 10px rgba(0, 0, 0, 0.65)');
+    root.style.setProperty('--pill-shadow-left', '4px 0 20px rgba(0, 0, 0, 0.65)');
+    root.style.setProperty('--pill-dock-shadow-left', '2px 0 10px rgba(0, 0, 0, 0.65)');
+    root.style.setProperty('--pill-shadow-top', '0 8px 24px rgba(0, 0, 0, 0.65)');
+    root.style.setProperty('--pill-dock-shadow-top', '0 2px 10px rgba(0, 0, 0, 0.65)');
+    root.style.setProperty('--pill-hover-shadow', '-6px 0 26px rgba(0, 0, 0, 0.75)');
+    root.style.setProperty('--pill-hover-border', 'rgba(255, 255, 255, 0.25)');
+    root.style.setProperty('--card-shadow', '0 16px 36px rgba(0, 0, 0, 0.70)');
+    root.style.setProperty('--ctx-shadow', '0 16px 36px rgba(0, 0, 0, 0.70)');
+    root.style.setProperty('--card-divider', 'rgba(255, 255, 255, 0.10)');
+    root.style.setProperty('--fillet-base', '#16161a');
+    root.style.setProperty('--fillet-stroke', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--text-primary', '#ffffff');
+    root.style.setProperty('--text-secondary', '#cbd5e1');
+    root.style.setProperty('--text-muted', '#94a3b8');
+    root.style.setProperty('--text-glyph', '#e2e8f0');
+    root.style.setProperty('--text-note', '#e2e8f0');
+    root.style.setProperty('--text-reset', '#e2e8f0');
+    root.style.setProperty('--reset-badge-bg', 'rgba(255, 255, 255, 0.08)');
+    root.style.setProperty('--reset-badge-border', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--track-bg', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--note-bg', 'rgba(255, 255, 255, 0.06)');
+    root.style.setProperty('--note-border', 'rgba(255, 255, 255, 0.14)');
+    root.style.setProperty('--note-accent', '#cbd5e1');
+    root.style.setProperty('--ctx-hover', 'rgba(255, 255, 255, 0.08)');
+    root.style.setProperty('--check-color', '#38bdf8');
+    root.style.setProperty('--check-glow', 'rgba(56, 189, 248, 0.5)');
+  } else if(style === 'apple'){
+    // Apple Liquid Frosted Glass: dynamic optical glass reflecting the desktop wallpaper / DWM accent
+    const lumAccent = getLuminousAccent(systemTheme.r, systemTheme.g, systemTheme.b, true);
+    root.style.setProperty('--pill-bg', `linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(${rgb}, 0.26) 35%, rgba(${rgb}, 0.10) 80%, rgba(255, 255, 255, 0.06) 100%), rgba(16, 18, 28, 0.65)`);
+    root.style.setProperty('--card-bg', `linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(${rgb}, 0.24) 35%, rgba(${rgb}, 0.08) 80%, rgba(255, 255, 255, 0.05) 100%), rgba(16, 18, 28, 0.65)`);
+    root.style.setProperty('--ctx-bg', `linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(${rgb}, 0.20) 35%, rgba(${rgb}, 0.08) 100%), rgba(16, 18, 28, 0.82)`);
+    root.style.setProperty('--card-tail-color', 'rgba(16, 18, 28, 0.65)');
+    root.style.setProperty('--card-filter', 'blur(32px) saturate(190%) contrast(105%)');
+    root.style.setProperty('--ctx-filter', 'blur(32px) saturate(190%) contrast(105%)');
+    root.style.setProperty('--pill-filter', 'blur(32px) saturate(190%) contrast(105%)');
+    root.style.setProperty('--pill-border', 'rgba(255, 255, 255, 0.32)');
+    root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.32)');
+    root.style.setProperty('--ctx-border', 'rgba(255, 255, 255, 0.32)');
+
+    root.style.setProperty('--pill-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.55), inset 0 0 16px rgba(${rgb}, 0.20), 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 16px rgba(${rgb}, 0.25)`);
+    root.style.setProperty('--pill-dock-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35)`);
+    root.style.setProperty('--pill-shadow-left', `inset 0 1.5px 1px rgba(255, 255, 255, 0.55), inset 0 0 16px rgba(${rgb}, 0.20), 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 16px rgba(${rgb}, 0.25)`);
+    root.style.setProperty('--pill-dock-shadow-left', `inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35)`);
+    root.style.setProperty('--pill-shadow-top', `inset 0 1.5px 1px rgba(255, 255, 255, 0.55), inset 0 0 16px rgba(${rgb}, 0.20), 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 16px rgba(${rgb}, 0.25)`);
+    root.style.setProperty('--pill-dock-shadow-top', `inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35)`);
+    root.style.setProperty('--pill-hover-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.65), 0 20px 42px rgba(0, 0, 0, 0.50), 0 0 20px rgba(${rgb}, 0.35)`);
+    root.style.setProperty('--pill-hover-border', 'rgba(255, 255, 255, 0.48)');
+
+    root.style.setProperty('--card-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.50), inset 0 0 24px rgba(${rgb}, 0.18), 0 24px 50px rgba(0, 0, 0, 0.50), 0 0 20px rgba(${rgb}, 0.25)`);
+    root.style.setProperty('--ctx-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 18px 40px rgba(0, 0, 0, 0.45)`);
+    root.style.setProperty('--card-divider', 'rgba(255, 255, 255, 0.12)');
+    root.style.setProperty('--fillet-base', 'rgba(16, 18, 28, 0.65)');
+    root.style.setProperty('--fillet-stroke', 'rgba(255, 255, 255, 0.32)');
+
+    root.style.setProperty('--text-primary', '#ffffff');
+    root.style.setProperty('--text-secondary', '#e2e8f0');
+    root.style.setProperty('--text-muted', '#cbd5e1');
+    root.style.setProperty('--text-glyph', '#f8fafc');
+    root.style.setProperty('--text-note', '#f1f5f9');
+    root.style.setProperty('--text-reset', '#f8fafc');
+    root.style.setProperty('--reset-badge-bg', `rgba(${rgb}, 0.16)`);
+    root.style.setProperty('--reset-badge-border', 'rgba(255, 255, 255, 0.24)');
+    root.style.setProperty('--track-bg', 'rgba(255, 255, 255, 0.18)');
+    root.style.setProperty('--note-bg', `rgba(${rgb}, 0.14)`);
+    root.style.setProperty('--note-border', 'rgba(255, 255, 255, 0.24)');
+    root.style.setProperty('--note-accent', lumAccent);
+    root.style.setProperty('--ctx-hover', `rgba(${rgb}, 0.22)`);
+    root.style.setProperty('--check-color', lumAccent);
+    root.style.setProperty('--check-glow', `rgba(${rgb}, 0.6)`);
+  } else if(style === 'windows'){
+    // Native Windows 11 Fluent 2 Acrylic: minimal, neutral smoke slate acrylic with crisp Microsoft highlights
+    if(systemTheme.is_dark){
+      root.style.setProperty('--pill-bg', 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(28, 30, 36, 0.88)');
+      root.style.setProperty('--card-bg', 'linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.01) 100%), rgba(26, 28, 34, 0.88)');
+      root.style.setProperty('--ctx-bg', 'linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%), rgba(30, 32, 40, 0.92)');
+      root.style.setProperty('--card-tail-color', 'rgba(26, 28, 34, 0.88)');
+      root.style.setProperty('--card-filter', 'blur(24px) saturate(135%)');
+      root.style.setProperty('--ctx-filter', 'blur(24px) saturate(135%)');
+      root.style.setProperty('--pill-filter', 'blur(24px) saturate(135%)');
+      root.style.setProperty('--pill-border', 'rgba(255, 255, 255, 0.11)');
+      root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.11)');
+      root.style.setProperty('--ctx-border', 'rgba(255, 255, 255, 0.13)');
+
+      root.style.setProperty('--pill-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 26px rgba(0, 0, 0, 0.40)');
+      root.style.setProperty('--pill-dock-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.30)');
+      root.style.setProperty('--pill-shadow-left', 'inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 26px rgba(0, 0, 0, 0.40)');
+      root.style.setProperty('--pill-dock-shadow-left', 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.30)');
+      root.style.setProperty('--pill-shadow-top', 'inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 26px rgba(0, 0, 0, 0.40)');
+      root.style.setProperty('--pill-dock-shadow-top', 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.30)');
+      root.style.setProperty('--pill-hover-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 14px 32px rgba(0, 0, 0, 0.45)');
+      root.style.setProperty('--pill-hover-border', 'rgba(255, 255, 255, 0.20)');
+
+      root.style.setProperty('--card-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 18px 38px rgba(0, 0, 0, 0.45)');
+      root.style.setProperty('--ctx-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 14px 32px rgba(0, 0, 0, 0.45)');
+      root.style.setProperty('--card-divider', 'rgba(255, 255, 255, 0.08)');
+      root.style.setProperty('--fillet-base', 'rgba(28, 30, 36, 0.88)');
+      root.style.setProperty('--fillet-stroke', 'rgba(255, 255, 255, 0.11)');
+
+      root.style.setProperty('--text-primary', '#ffffff');
+      root.style.setProperty('--text-secondary', '#cbd5e1');
+      root.style.setProperty('--text-muted', '#94a3b8');
+      root.style.setProperty('--text-glyph', '#f1f5f9');
+      root.style.setProperty('--text-note', '#f1f5f9');
+      root.style.setProperty('--text-reset', '#cbd5e1');
+      root.style.setProperty('--reset-badge-bg', 'rgba(255, 255, 255, 0.08)');
+      root.style.setProperty('--reset-badge-border', 'rgba(255, 255, 255, 0.14)');
+      root.style.setProperty('--track-bg', 'rgba(255, 255, 255, 0.12)');
+      root.style.setProperty('--note-bg', 'rgba(255, 255, 255, 0.06)');
+      root.style.setProperty('--note-border', 'rgba(255, 255, 255, 0.14)');
+      root.style.setProperty('--note-accent', '#60a5fa');
+      root.style.setProperty('--ctx-hover', 'rgba(255, 255, 255, 0.08)');
+      root.style.setProperty('--check-color', '#60a5fa');
+      root.style.setProperty('--check-glow', 'rgba(96, 165, 250, 0.5)');
+    } else {
+      // Windows Light Mode Fluent Acrylic
+      root.style.setProperty('--pill-bg', 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(243, 243, 243, 0.85) 100%)');
+      root.style.setProperty('--card-bg', 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(243, 243, 243, 0.88) 100%)');
+      root.style.setProperty('--ctx-bg', 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(245, 245, 245, 0.90) 100%)');
+      root.style.setProperty('--card-tail-color', 'rgba(243, 243, 243, 0.88)');
+      root.style.setProperty('--card-filter', 'blur(24px) saturate(140%)');
+      root.style.setProperty('--ctx-filter', 'blur(24px) saturate(140%)');
+      root.style.setProperty('--pill-filter', 'blur(24px) saturate(140%)');
+      root.style.setProperty('--pill-border', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--card-border', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--ctx-border', 'rgba(0, 0, 0, 0.10)');
+
+      root.style.setProperty('--pill-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 10px 24px rgba(0, 0, 0, 0.12)');
+      root.style.setProperty('--pill-dock-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 4px 12px rgba(0, 0, 0, 0.10)');
+      root.style.setProperty('--pill-shadow-left', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 10px 24px rgba(0, 0, 0, 0.12)');
+      root.style.setProperty('--pill-dock-shadow-left', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 4px 12px rgba(0, 0, 0, 0.10)');
+      root.style.setProperty('--pill-shadow-top', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 10px 24px rgba(0, 0, 0, 0.12)');
+      root.style.setProperty('--pill-dock-shadow-top', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 4px 12px rgba(0, 0, 0, 0.10)');
+      root.style.setProperty('--pill-hover-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 1.0), 0 14px 28px rgba(0, 0, 0, 0.15)');
+      root.style.setProperty('--pill-hover-border', 'rgba(0, 0, 0, 0.14)');
+
+      root.style.setProperty('--card-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 14px 32px rgba(0, 0, 0, 0.15)');
+      root.style.setProperty('--ctx-shadow', 'inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 12px 28px rgba(0, 0, 0, 0.14)');
+      root.style.setProperty('--card-divider', 'rgba(0, 0, 0, 0.06)');
+      root.style.setProperty('--fillet-base', 'rgba(243, 243, 243, 0.85)');
+      root.style.setProperty('--fillet-stroke', 'rgba(0, 0, 0, 0.08)');
+
+      root.style.setProperty('--text-primary', '#0f172a');
+      root.style.setProperty('--text-secondary', '#334155');
+      root.style.setProperty('--text-muted', '#64748b');
+      root.style.setProperty('--text-glyph', '#1e293b');
+      root.style.setProperty('--text-note', '#1e293b');
+      root.style.setProperty('--text-reset', '#334155');
+      root.style.setProperty('--reset-badge-bg', 'rgba(0, 0, 0, 0.05)');
+      root.style.setProperty('--reset-badge-border', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--track-bg', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--note-bg', 'rgba(0, 0, 0, 0.04)');
+      root.style.setProperty('--note-border', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--note-accent', '#0078d4');
+      root.style.setProperty('--ctx-hover', 'rgba(0, 0, 0, 0.05)');
+      root.style.setProperty('--check-color', '#0078d4');
+      root.style.setProperty('--check-glow', 'rgba(0, 120, 212, 0.3)');
+    }
+  } else {
+    // Custom Accent Mode (style === 'custom')
+    const customLumAccent = getLuminousAccent(
+      (parseInt(hex.replace('#',''),16)>>16)&255,
+      (parseInt(hex.replace('#',''),16)>>8)&255,
+      parseInt(hex.replace('#',''),16)&255,
+      true
+    );
+    root.style.setProperty('--pill-bg', `linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(${rgb}, 0.15) 100%), rgba(18, 22, 32, 0.64)`);
+    root.style.setProperty('--card-bg', `linear-gradient(145deg, rgba(255, 255, 255, 0.16) 0%, rgba(${rgb}, 0.15) 100%), rgba(18, 22, 32, 0.62)`);
+    root.style.setProperty('--ctx-bg', `linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(${rgb}, 0.14) 100%), rgba(18, 22, 32, 0.78)`);
+    root.style.setProperty('--card-tail-color', 'rgba(18, 22, 32, 0.62)');
+    root.style.setProperty('--card-filter', 'blur(28px) saturate(160%)');
+    root.style.setProperty('--ctx-filter', 'blur(28px) saturate(160%)');
+    root.style.setProperty('--pill-filter', 'blur(28px) saturate(160%)');
+    root.style.setProperty('--pill-border', `rgba(${rgb}, 0.40)`);
+    root.style.setProperty('--card-border', `rgba(${rgb}, 0.38)`);
+    root.style.setProperty('--ctx-border', `rgba(${rgb}, 0.38)`);
+
+    root.style.setProperty('--pill-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.35), 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 14px rgba(${rgb}, 0.30)`);
+    root.style.setProperty('--pill-dock-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.30), 0 4px 16px rgba(0, 0, 0, 0.35)`);
+    root.style.setProperty('--pill-shadow-left', `inset 0 1.5px 1px rgba(255, 255, 255, 0.35), 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 14px rgba(${rgb}, 0.30)`);
+    root.style.setProperty('--pill-dock-shadow-left', `inset 0 1.5px 1px rgba(255, 255, 255, 0.30), 0 4px 16px rgba(0, 0, 0, 0.35)`);
+    root.style.setProperty('--pill-shadow-top', `inset 0 1.5px 1px rgba(255, 255, 255, 0.35), 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 14px rgba(${rgb}, 0.30)`);
+    root.style.setProperty('--pill-dock-shadow-top', `inset 0 1.5px 1px rgba(255, 255, 255, 0.30), 0 4px 16px rgba(0, 0, 0, 0.35)`);
+    root.style.setProperty('--pill-hover-shadow', `inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 0 20px 42px rgba(0, 0, 0, 0.50), 0 0 18px rgba(${rgb}, 0.45)`);
+    root.style.setProperty('--pill-hover-border', `rgba(${rgb}, 0.60)`);
+
+    root.style.setProperty('--fillet-stroke', 'rgba(255, 255, 255, 0.20)');
+
+    root.style.setProperty('--text-primary', '#ffffff');
+    root.style.setProperty('--text-secondary', '#e2e8f0');
+    root.style.setProperty('--text-muted', '#94a3b8');
+    root.style.setProperty('--text-glyph', '#f1f5f9');
+    root.style.setProperty('--text-note', '#e2e8f0');
+    root.style.setProperty('--text-reset', '#e2e8f0');
+    root.style.setProperty('--reset-badge-bg', 'rgba(255, 255, 255, 0.08)');
+    root.style.setProperty('--reset-badge-border', 'rgba(255, 255, 255, 0.14)');
+    root.style.setProperty('--track-bg', 'rgba(255, 255, 255, 0.15)');
+    root.style.setProperty('--note-bg', `rgba(${rgb}, 0.10)`);
+    root.style.setProperty('--note-border', `rgba(${rgb}, 0.25)`);
+    root.style.setProperty('--note-accent', customLumAccent);
+    root.style.setProperty('--ctx-hover', `rgba(${rgb}, 0.12)`);
+    root.style.setProperty('--check-color', customLumAccent);
+    root.style.setProperty('--check-glow', `rgba(${rgb}, 0.5)`);
+  }
+
+  // Notch overlay canvas window remains 100% transparent; backdrop is disabled
+  invoke('set_backdrop', { label: 'notch', style: 'none' }).catch(()=>{});
+}
+
+function applyTheme(t){
+  if(!t) return;
+  systemTheme = t;
+  updateMaterialStyles();
+}
+
+invoke('get_theme').then(applyTheme).catch(()=>{});
+listen('theme',e=>applyTheme(e.payload)).catch(()=>{});
+
+invoke('get_lang_resolved').then(l => { if(l) setUiLanguage(l); }).catch(()=>{});
+listen('lang', e => { if(e.payload) setUiLanguage(e.payload); }).catch(()=>{});
+
+invoke('get_appearance').then(cfg=>{
+  if(cfg){
+    appearanceConfig = cfg;
+    fitZoom();
+    updateMaterialStyles();
+    if(appearanceConfig.autohide) scheduleAutohide();
+  }
+}).catch(()=>{});
+
+listen('appearance',e=>{
+  if(e.payload){
+    appearanceConfig = e.payload;
+    fitZoom();
+    updateMaterialStyles();
+    if(appearanceConfig.autohide) scheduleAutohide();
+    else wakeNotch();
+  }
+}).catch(()=>{});
+
+updateMaterialStyles();
+renderRing();
+setInterval(renderRing,30_000); // stale state and reset copy move with time
+</script>
+</body>
+</html>
