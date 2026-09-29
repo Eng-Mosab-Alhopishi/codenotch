@@ -158,6 +158,7 @@ extern "system" {
 extern "system" {
     fn GetIfTable2(table: *mut *mut MIB_IF_TABLE2) -> u32;
     fn FreeMibTable(memory: *mut std::ffi::c_void);
+    fn GetBestInterface(dw_dest_addr: u32, pdw_best_if_index: *mut u32) -> u32;
 }
 
 #[link(name = "user32")]
@@ -430,22 +431,105 @@ pub fn init_hardware_monitor() {
     }
 }
 
+fn wide_to_lower(slice: &[u16]) -> String {
+    let len = slice.iter().position(|&c| c == 0).unwrap_or(slice.len());
+    String::from_utf16_lossy(&slice[..len]).to_lowercase()
+}
+
+fn is_virtual_or_stream_adapter(desc: &str, alias: &str) -> bool {
+    let bad_keywords = [
+        "wi-fi direct",
+        "wifi direct",
+        "miracast",
+        "wireless display",
+        "direct-",
+        "direct ",
+        "virtual",
+        "vethernet",
+        "hyper-v",
+        "vmware",
+        "virtualbox",
+        "host-only",
+        "bluetooth",
+        "loopback",
+        "tap",
+        "tun",
+        "tailscale",
+        "zerotier",
+        "wireguard",
+        "npcap",
+        "pcap",
+        "wfd",
+    ];
+    for kw in bad_keywords {
+        if desc.contains(kw) || alias.contains(kw) {
+            return true;
+        }
+    }
+    false
+}
+
 fn get_raw_network_octets() -> (u64, u64) {
     let mut table_ptr: *mut MIB_IF_TABLE2 = std::ptr::null_mut();
     let mut total_in: u64 = 0;
     let mut total_out: u64 = 0;
 
+    // Detect the primary route for internet traffic (e.g. 8.8.8.8) to exclude secondary screen sharing / Wi-Fi Direct
+    let mut best_index: u32 = 0;
+    let has_best_route = unsafe { GetBestInterface(0x08080808, &mut best_index) == 0 && best_index != 0 };
+
     unsafe {
         if GetIfTable2(&mut table_ptr) == 0 && !table_ptr.is_null() {
             let entries = (*table_ptr).num_entries as usize;
-            for i in 0..entries {
-                let row = *(*table_ptr).table.as_ptr().add(i);
-                // dwType 24 = MIB_IF_TYPE_LOOPBACK (skip loopback)
-                if row.type_ != 24 {
-                    total_in = total_in.wrapping_add(row.in_octets);
-                    total_out = total_out.wrapping_add(row.out_octets);
+
+            // Strategy 1: If Windows routing identifies the active internet interface, use it directly if not virtual
+            if has_best_route {
+                for i in 0..entries {
+                    let row = *(*table_ptr).table.as_ptr().add(i);
+                    if row.interface_index == best_index {
+                        let desc = wide_to_lower(&row.description);
+                        let alias = wide_to_lower(&row.alias);
+                        if !is_virtual_or_stream_adapter(&desc, &alias) {
+                            FreeMibTable(table_ptr as *mut std::ffi::c_void);
+                            return (row.in_octets, row.out_octets);
+                        }
+                    }
                 }
             }
+
+            // Strategy 2: Aggregate active physical internet interfaces (Ethernet, Wi-Fi, Mobile)
+            // Explicitly excluding Wi-Fi Direct virtual adapters used for wireless display mirroring to tablets
+            let mut matched_any = false;
+            for i in 0..entries {
+                let row = *(*table_ptr).table.as_ptr().add(i);
+                // oper_status 1 = IfOperStatusUp
+                let is_physical = row.type_ == 6 || row.type_ == 71 || row.type_ == 243 || row.type_ == 244;
+                if row.oper_status == 1 && is_physical {
+                    let desc = wide_to_lower(&row.description);
+                    let alias = wide_to_lower(&row.alias);
+                    if !is_virtual_or_stream_adapter(&desc, &alias) {
+                        total_in = total_in.wrapping_add(row.in_octets);
+                        total_out = total_out.wrapping_add(row.out_octets);
+                        matched_any = true;
+                    }
+                }
+            }
+
+            // Strategy 3: Fallback to any active non-loopback interface if no physical matches
+            if !matched_any {
+                for i in 0..entries {
+                    let row = *(*table_ptr).table.as_ptr().add(i);
+                    if row.type_ != 24 && row.oper_status == 1 {
+                        let desc = wide_to_lower(&row.description);
+                        let alias = wide_to_lower(&row.alias);
+                        if !is_virtual_or_stream_adapter(&desc, &alias) {
+                            total_in = total_in.wrapping_add(row.in_octets);
+                            total_out = total_out.wrapping_add(row.out_octets);
+                        }
+                    }
+                }
+            }
+
             FreeMibTable(table_ptr as *mut std::ffi::c_void);
         }
     }
@@ -768,7 +852,7 @@ pub fn poll_system_metrics() -> SystemMetrics {
         timestamp: std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
-            .as_secs(),
+            .as_millis() as u64,
     };
 
     state.last_metrics = metrics.clone();

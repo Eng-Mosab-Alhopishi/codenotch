@@ -637,11 +637,13 @@ const HW_METRICS = ['cpu', 'ram', 'net', 'daily'];
 let hwConfig = { overlay_enabled: false, overlay_clickthrough: false };
 let hwPollTimer = null;
 
-const SVG_CPU = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>`;
-const SVG_RAM = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="18" x2="6" y2="22"/><line x1="10" y1="18" x2="10" y2="22"/><line x1="14" y1="18" x2="14" y2="22"/><line x1="18" y1="18" x2="18" y2="22"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/></svg>`;
-const SVG_ARROWS = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg>`;
-const SVG_DAILY = `<svg class="stroke-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+const SVG_CPU = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><rect x="8" y="8" width="8" height="8" rx="1.5" fill="currentColor" fill-opacity="0.15"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/><circle cx="6.5" cy="6.5" r="0.75" fill="currentColor"/></svg>`;
+const SVG_RAM = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="1.5"/><rect x="4.5" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><rect x="8.5" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><rect x="13" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><rect x="17" y="9.5" width="2.5" height="4" rx="0.5" fill="currentColor" fill-opacity="0.18"/><line x1="5" y1="17" x2="5" y2="20"/><line x1="7.5" y1="17" x2="7.5" y2="20"/><line x1="10" y1="17" x2="10" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/><line x1="16.5" y1="17" x2="16.5" y2="20"/><line x1="19" y1="17" x2="19" y2="20"/></svg>`;
+const SVG_NET = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1.2" fill="currentColor"/></svg>`;
+const SVG_ARROWS = SVG_NET; // backward compat alias
+const SVG_DAILY = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M8 12a4 4 0 0 1 8 0"/></svg>`;
 const SVG_GAME = `<svg class="stroke-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>`;
+const SVG_SYS = `<svg class="stroke-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 14l3-3 2 2 5-5"/><circle cx="17" cy="8" r="1" fill="currentColor"/></svg>`;
 
 function setHwRingMetric(metric){
   if(HW_METRICS.includes(metric)){
@@ -918,7 +920,7 @@ function glyphHtml(p,small){
   if(p && p.id==='hardware'){
     let svgContent = SVG_CPU;
     if(hwRingMetric==='ram') svgContent = SVG_RAM;
-    else if(hwRingMetric==='net') svgContent = SVG_ARROWS;
+    else if(hwRingMetric==='net') svgContent = SVG_NET;
     else if(hwRingMetric==='daily') svgContent = SVG_DAILY;
     return `<span class="mark" title="${textCopy('Scroll notch ring to cycle metric')}">${svgContent}</span>`;
   }
@@ -970,7 +972,7 @@ function providers(){
       id: 'hardware',
       name: textCopy('System Resources'),
       glyph: 'HW',
-      snap: { status:'ok', windows:[], fetched_at: hwMetrics.timestamp || Date.now() }
+      snap: { status:'ok', windows:[], fetched_at: (hwMetrics.timestamp ? (hwMetrics.timestamp < 1e11 ? hwMetrics.timestamp * 1000 : hwMetrics.timestamp) : Date.now()) }
     });
   }
 
@@ -1124,7 +1126,20 @@ function resetCopy(ms){
 }
 
 function ago(ms){
-  const m=Math.round((Date.now()-ms)/60000);
+  if(!ms) return '';
+  const t = ms < 1e11 ? ms * 1000 : ms;
+  const diffSec = Math.max(0, Math.round((Date.now() - t) / 1000));
+  if(diffSec < 15){
+    if(uiLang==='ar') return 'الآن';
+    if(uiLang==='ru') return 'сейчас';
+    return 'just now';
+  }
+  const m = Math.round(diffSec / 60);
+  if(m < 1){
+    if(uiLang==='ar') return `منذ ${diffSec} ث`;
+    if(uiLang==='ru') return `${diffSec} сек назад`;
+    return `${diffSec}s ago`;
+  }
   if(uiLang==='ar') return m<60?`منذ ${m} د`:`منذ ${Math.round(m/60)} س`;
   if(uiLang==='ru') return m<60?`${m} мин назад`:`${Math.round(m/60)} ч назад`;
   return m<60?`${m}m ago`:`${Math.round(m/60)}h ago`;
@@ -1302,10 +1317,13 @@ function renderHardwareCard(c){
 
   let html = `
     <div class="c-head">
-      <span class="mark" style="color:#38bdf8">${SVG_CPU}</span>
+      <span class="mark" style="color:#38bdf8">${SVG_SYS}</span>
       <span class="c-title">${textCopy('System Resources')}</span>
     </div>
-    <div class="c-sub">${textCopy('Updated')} ${ago(hwMetrics.timestamp || Date.now())}</div>
+    <div class="c-sub" style="display:flex;align-items:center;gap:6px;">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;flex-shrink:0;"></span>
+      <span>${uiLang==='ar' ? 'مباشر · تم التحديث الآن' : (uiLang==='ru' ? 'В реальном времени' : 'Live · Updated just now')}</span>
+    </div>
 
     ${appSection}
 
@@ -1335,7 +1353,7 @@ function renderHardwareCard(c){
       <!-- Network Speeds Box -->
       <div class="hw-metric-box ${hwRingMetric==='net'?'active-metric':''}" onclick="setHwRingMetric('net')" title="${textCopy('Scroll notch ring to cycle metric')}">
         <div class="hw-box-head">
-          <span>${SVG_ARROWS} ${textCopy('Network')}</span>
+          <span>${SVG_NET} ${textCopy('Network')}</span>
           <span class="hw-box-val" style="color:#38bdf8">↓ ${hwMetrics.net_download_speed}</span>
         </div>
         <div class="hw-net-grid">

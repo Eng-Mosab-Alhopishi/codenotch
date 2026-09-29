@@ -170,33 +170,23 @@
   .line-day .osd-val { color: var(--col-day); }
   .line-app .osd-val { color: var(--col-app); }
 
-  /* Redesigned Compact Context Menu: 2-column grid, segmented controls, guaranteed zero clipping */
+  /* Ultra-Clean Modern OSD Settings Context Menu */
   #ctx-menu {
     position: fixed;
     display: none;
     z-index: 1000;
-    background: rgba(13, 17, 23, 0.96);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    padding: 12px 14px;
-    width: 334px;
-    max-height: 550px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    font-family: 'Segoe UI', -apple-system, sans-serif;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    padding: 10px 12px;
+    width: 246px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
     font-size: 11px;
     color: #f1f5f9;
-  }
-
-  #ctx-menu::-webkit-scrollbar {
-    width: 4px;
-  }
-  #ctx-menu::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 4px;
+    user-select: none;
   }
 
   #ctx-menu.show {
@@ -213,47 +203,49 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 6px;
-    margin-bottom: 6px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    padding-bottom: 7px;
+    margin-bottom: 7px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .ctx-title {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     color: #38bdf8;
     display: flex;
     align-items: center;
     gap: 6px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
   }
 
   .ctx-close-btn {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 4px;
     color: #94a3b8;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 10px;
+    transition: all 0.12s ease;
   }
   .ctx-close-btn:hover {
-    background: rgba(239, 68, 68, 0.7);
+    background: rgba(239, 68, 68, 0.8);
     color: #fff;
   }
 
   .ctx-sec-title {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin: 6px 0 4px 0;
+    margin: 5px 0 4px 0;
   }
 
-  /* 2-Column Metrics Chip Grid */
+  /* Compact 2-Column Metrics Pills */
   .metrics-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -264,136 +256,180 @@
   .metric-chip {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: space-between;
+    padding: 4px 7px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.12s ease, border-color 0.12s ease;
-    font-size: 11px;
+    transition: all 0.12s ease;
+    font-size: 10px;
     color: #94a3b8;
   }
 
   .metric-chip:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.09);
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.15);
   }
 
   .metric-chip.active {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: rgba(56, 189, 248, 0.45);
-    color: #ffffff;
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #e2e8f0;
+    font-weight: 600;
   }
 
   .metric-check {
-    width: 12px;
-    height: 12px;
-    display: inline-flex;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .metric-chip.active .metric-check {
+    background: #38bdf8;
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+  }
+
+  /* Compact Font Size Row */
+  .ctx-row-slider {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    color: #38bdf8;
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  /* Screen Position Presets */
-  .pos-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    margin-bottom: 4px;
-  }
-
-  .pos-btn {
-    padding: 5px 3px;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 5px;
-    color: #cbd5e1;
-    font-size: 10.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
-  }
-
-  .pos-btn:hover {
-    background: rgba(56, 189, 248, 0.22);
-    border-color: rgba(56, 189, 248, 0.5);
-    color: #38bdf8;
-  }
-
-  .pos-btn-center {
-    width: 100%;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 4px 8px;
     margin-bottom: 6px;
-    padding: 5px 0;
   }
 
-  /* Segmented Controls for Themes, Sizes, Opacity */
+  .ctx-slider-label {
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .ctx-range-input {
+    flex: 1;
+    height: 4px;
+    accent-color: #38bdf8;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  .ctx-val-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    font-family: Consolas, monospace;
+    color: #38bdf8;
+    min-width: 26px;
+    text-align: right;
+  }
+
+  /* Segmented Controls for Opacity */
   .seg-row {
     display: flex;
     gap: 3px;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0, 0, 0, 0.3);
     padding: 2px;
-    border-radius: 7px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 6px;
   }
 
   .seg-item {
     flex: 1;
     text-align: center;
-    padding: 4px 2px;
+    padding: 3.5px 2px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 10.5px;
+    font-size: 9.5px;
     font-weight: 600;
     color: #94a3b8;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: all 0.12s ease;
     white-space: nowrap;
   }
 
   .seg-item:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
   }
 
   .seg-item.active {
-    background: rgba(56, 189, 248, 0.22);
+    background: rgba(56, 189, 248, 0.18);
     color: #38bdf8;
     font-weight: 700;
   }
 
-  /* Action Buttons */
+  /* Sleek Shortcut Action Rows */
   .ctx-actions {
     display: flex;
-    gap: 6px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .ctx-act-btn {
-    flex: 1;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 5px;
-    padding: 6px 8px;
+    justify-content: space-between;
+    padding: 5px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
-    font-size: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+    font-size: 10px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: all 0.12s ease;
   }
 
   .ctx-act-btn:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .ctx-act-btn.active {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+  }
+
+  .ctx-act-btn.warn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  .ctx-act-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ctx-act-kbd {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .ctx-act-kbd kbd {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-family: inherit;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
   }
 
   /* Right-docked alignment for clean right-edge appearance */
@@ -504,121 +540,95 @@
   </div>
 </div>
 
-<!-- Compact, Unclipped Context Menu -->
+<!-- Compact, Modern OSD Settings Menu -->
 <div id="ctx-menu" class="no-drag">
   <div class="ctx-header">
     <div class="ctx-title">
-      <span>🎮</span>
-      <span>OSD HUD Settings</span>
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+      <span>HUD Settings</span>
     </div>
-    <div class="ctx-close-btn" id="ctx-btn-close-menu" title="Close menu">✕</div>
+    <div class="ctx-close-btn" id="ctx-btn-close-menu" title="Close">✕</div>
   </div>
 
-  <!-- 2-Column Metrics Toggles -->
+  <!-- Visible Metrics Compact Chips -->
   <div class="ctx-sec-title">Visible Metrics</div>
   <div class="metrics-grid">
-    <div class="metric-chip active" data-toggle="fps">
-      <span class="metric-check" id="chk-fps">✓</span>
+    <div class="metric-chip active" data-toggle="fps" title="Frames per second and frametime in ms">
       <span>FPS & Frametime</span>
+      <span class="metric-check" id="chk-fps"></span>
     </div>
-    <div class="metric-chip active" data-toggle="low">
-      <span class="metric-check" id="chk-low">✓</span>
+    <div class="metric-chip active" data-toggle="low" title="1% Low and average framerate">
       <span>1% Low & Avg</span>
+      <span class="metric-check" id="chk-low"></span>
     </div>
-    <div class="metric-chip active" data-toggle="gpu">
-      <span class="metric-check" id="chk-gpu">✓</span>
+    <div class="metric-chip active" data-toggle="gpu" title="GPU load, clock speed and temperature">
       <span>GPU & Clock</span>
+      <span class="metric-check" id="chk-gpu"></span>
     </div>
-    <div class="metric-chip active" data-toggle="vram">
-      <span class="metric-check" id="chk-vram">✓</span>
+    <div class="metric-chip active" data-toggle="vram" title="Video RAM usage and percentage">
       <span>VRAM Memory</span>
+      <span class="metric-check" id="chk-vram"></span>
     </div>
-    <div class="metric-chip active" data-toggle="cpu">
-      <span class="metric-check" id="chk-cpu">✓</span>
+    <div class="metric-chip active" data-toggle="cpu" title="CPU utilization, core count and temperature">
       <span>CPU & Temp</span>
+      <span class="metric-check" id="chk-cpu"></span>
     </div>
-    <div class="metric-chip active" data-toggle="ram">
-      <span class="metric-check" id="chk-ram">✓</span>
+    <div class="metric-chip active" data-toggle="ram" title="System RAM usage in GB and percentage">
       <span>RAM Memory</span>
+      <span class="metric-check" id="chk-ram"></span>
     </div>
-    <div class="metric-chip active" data-toggle="page">
-      <span class="metric-check" id="chk-page">✓</span>
+    <div class="metric-chip active" data-toggle="page" title="Windows virtual memory / pagefile commit">
       <span>Pagefile Commit</span>
+      <span class="metric-check" id="chk-page"></span>
     </div>
-    <div class="metric-chip active" data-toggle="net">
-      <span class="metric-check" id="chk-net">✓</span>
+    <div class="metric-chip active" data-toggle="net" title="Live internet download and upload speed">
       <span>Live Network</span>
+      <span class="metric-check" id="chk-net"></span>
     </div>
-    <div class="metric-chip active" data-toggle="day">
-      <span class="metric-check" id="chk-day">✓</span>
+    <div class="metric-chip active" data-toggle="day" title="Total downloaded and uploaded data today">
       <span>Today's Data</span>
+      <span class="metric-check" id="chk-day"></span>
     </div>
-    <div class="metric-chip" data-toggle="app">
-      <span class="metric-check" id="chk-app"></span>
+    <div class="metric-chip" data-toggle="app" title="Active foreground application or game title">
       <span>Game Title</span>
+      <span class="metric-check" id="chk-app"></span>
     </div>
   </div>
 
-  <!-- Position Presets (Snap to Screen Corners) -->
-  <div class="ctx-sec-title">HUD Position & Docking (موضع وتثبيت الشاشة)</div>
-  <div class="pos-grid">
-    <button class="pos-btn" data-snap="top-left">↖ Top-L</button>
-    <button class="pos-btn" data-snap="top-right">↗ Top-R</button>
-    <button class="pos-btn" data-snap="bottom-left">↙ Btm-L</button>
-    <button class="pos-btn" data-snap="bottom-right">↘ Btm-R</button>
-  </div>
-  <button class="pos-btn pos-btn-center" data-snap="center">• Center Screen (وسط الشاشة)</button>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:1px 0;">
-    <span style="font-size:10px;color:#94a3b8;">Border Margin:</span>
-    <div style="display:flex;gap:4px;">
-      <button class="margin-chip" data-margin="0" title="Flush with monitor edge (0px)">0px (أقصى الزاوية)</button>
-      <button class="margin-chip active" data-margin="8">8px</button>
-      <button class="margin-chip" data-margin="16">16px</button>
-    </div>
+  <!-- Appearance -->
+  <div class="ctx-sec-title">Font Size</div>
+  <div class="ctx-row-slider">
+    <span class="ctx-slider-label">Size</span>
+    <input type="range" class="ctx-range-input" id="ctx-font-range" min="9" max="24" value="12" title="Drag to adjust HUD font size">
+    <span class="ctx-val-badge" id="ctx-font-val">12px</span>
   </div>
 
-  <!-- Color Scheme Segmented Control -->
-  <div class="ctx-sec-title">Color Scheme</div>
+  <div class="ctx-sec-title">Background Tint</div>
   <div class="seg-row">
-    <div class="seg-item active" data-theme="msi">MSI Classic</div>
-    <div class="seg-item" data-theme="cyber">Cyber Neon</div>
-    <div class="seg-item" data-theme="mono">Monochrome</div>
-  </div>
-
-  <!-- Font Size Controller (Free Number Input + Range Slider) -->
-  <div class="ctx-sec-title">Font Size (حجم الخط)</div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-    <input type="range" id="ctx-font-range" min="9" max="36" value="14" style="flex:1;accent-color:#38bdf8;cursor:pointer;">
-    <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);">
-      <input type="number" id="ctx-font-num" min="9" max="36" value="14" style="width:36px;border:none;background:transparent;color:#fff;font-weight:700;font-family:Consolas,monospace;text-align:center;outline:none;font-size:12px;">
-      <span style="font-size:11px;color:rgba(255,255,255,0.5)">px</span>
-    </div>
-  </div>
-  <div class="seg-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:8px;">
-    <div class="seg-item" data-size="9">9px</div>
-    <div class="seg-item" data-size="12">12px</div>
-    <div class="seg-item active" data-size="14">14px</div>
-    <div class="seg-item" data-size="18">18px</div>
-    <div class="seg-item" data-size="24">24px</div>
-  </div>
-
-  <!-- Background Tint Segmented Control -->
-  <div class="ctx-sec-title">Background Shade</div>
-  <div class="seg-row">
-    <div class="seg-item active" data-bg="0.0">0% Pure</div>
-    <div class="seg-item" data-bg="0.25">25% Faint</div>
+    <div class="seg-item active" data-bg="0.0">0% Clear</div>
+    <div class="seg-item" data-bg="0.25">25% Tint</div>
     <div class="seg-item" data-bg="0.5">50% Dark</div>
   </div>
 
-  <!-- Action Controls -->
+  <!-- Action Controls with Elegant Badges -->
   <div class="ctx-actions">
-    <button class="ctx-act-btn" id="ctx-btn-lock" title="Shortcut: Ctrl+Alt+L">
-      <span>📌</span>
-      <span>Lock Click (Ctrl+Alt+L)</span>
+    <button class="ctx-act-btn" id="ctx-btn-lock" title="Toggle click-through mode">
+      <div class="ctx-act-left">
+        <span id="ctx-lock-icon">📌</span>
+        <span id="ctx-lock-label">Lock Click-thru</span>
+      </div>
+      <div class="ctx-act-kbd">
+        <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>L</kbd>
+      </div>
     </button>
-    <button class="ctx-act-btn warn" id="ctx-btn-hide" title="Shortcut: Ctrl+Alt+H">
-      <span>✕</span>
-      <span>Hide HUD</span>
+    <button class="ctx-act-btn warn" id="ctx-btn-hide" title="Hide overlay HUD">
+      <div class="ctx-act-left">
+        <span>✕</span>
+        <span>Hide HUD</span>
+      </div>
+      <div class="ctx-act-kbd">
+        <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>H</kbd>
+      </div>
     </button>
   </div>
 </div>
@@ -697,8 +707,12 @@
   function setOsdFontSize(sz){
     const parsed = parseInt(sz, 10);
     if(isNaN(parsed)) return;
-    const clamped = Math.max(9, Math.min(36, parsed));
+    const clamped = Math.max(9, Math.min(28, parsed));
     osdCfg.fontSize = clamped;
+    const fontVal = document.getElementById('ctx-font-val');
+    if(fontVal) fontVal.textContent = clamped + 'px';
+    const fontRng = document.getElementById('ctx-font-range');
+    if(fontRng) fontRng.value = clamped;
     applyOsdVisuals();
     saveOsdCfg();
   }
@@ -820,35 +834,24 @@
     });
 
     // Font inputs sync
-    const inpNum = document.getElementById('ctx-font-num');
     const inpRng = document.getElementById('ctx-font-range');
-    if(inpNum && document.activeElement !== inpNum) inpNum.value = osdCfg.fontSize;
+    const valBadge = document.getElementById('ctx-font-val');
     if(inpRng && document.activeElement !== inpRng) inpRng.value = osdCfg.fontSize;
+    if(valBadge) valBadge.textContent = osdCfg.fontSize + 'px';
 
     // Segmented background shade
     document.querySelectorAll('.seg-item[data-bg]').forEach(el => {
       el.classList.toggle('active', Number(el.dataset.bg) === osdCfg.bgOpacity);
     });
 
-    // Dock alignment class (align text to right edge if docked to right corners)
-    if(osdCfg.dock && osdCfg.dock.includes('right')){
-      osdWrap.classList.add('dock-right');
-    } else {
-      osdWrap.classList.remove('dock-right');
-    }
-
-    // Update margin chips
-    document.querySelectorAll('.margin-chip').forEach(el => {
-      el.classList.toggle('active', Number(el.dataset.margin) === osdCfg.marginX);
-    });
-
     // Context menu lock button active state
     const btnLock = document.getElementById('ctx-btn-lock');
+    const lockIcon = document.getElementById('ctx-lock-icon');
+    const lockLabel = document.getElementById('ctx-lock-label');
     if(btnLock){
       btnLock.classList.toggle('active', osdCfg.clickthrough);
-      btnLock.innerHTML = osdCfg.clickthrough
-        ? '<span>🔓</span><span>Unlock Click (Ctrl+Alt+L)</span>'
-        : '<span>📌</span><span>Lock Click (Ctrl+Alt+L)</span>';
+      if(lockIcon) lockIcon.textContent = osdCfg.clickthrough ? '🔓' : '📌';
+      if(lockLabel) lockLabel.textContent = osdCfg.clickthrough ? 'Unlock Click' : 'Lock Click-thru';
     }
 
     // Auto-fit window size tightly to content when menu is closed
@@ -861,7 +864,7 @@
   let lastReportedH = 0;
   function adjustWindowSize(isMenuOpen = false){
     if(isMenuOpen){
-      invoke('resize_overlay_window', { width: 360, height: 580 }).catch(()=>{});
+      invoke('resize_overlay_window', { width: 265, height: 350 }).catch(()=>{});
       return;
     }
     const wrap = document.getElementById('osd-wrap');
@@ -877,13 +880,8 @@
 
   applyOsdVisuals();
 
-  // Font input listeners
-  const fontNum = document.getElementById('ctx-font-num');
+  // Font input listener
   const fontRng = document.getElementById('ctx-font-range');
-  if(fontNum){
-    fontNum.addEventListener('input', e => setOsdFontSize(e.target.value));
-    fontNum.addEventListener('change', e => setOsdFontSize(e.target.value));
-  }
   if(fontRng){
     fontRng.addEventListener('input', e => setOsdFontSize(e.target.value));
   }
@@ -1156,11 +1154,12 @@
       const isLocked = !!e.payload;
       osdCfg.clickthrough = isLocked;
       const btnLock = document.getElementById('ctx-btn-lock');
+      const lockIcon = document.getElementById('ctx-lock-icon');
+      const lockLabel = document.getElementById('ctx-lock-label');
       if(btnLock){
         btnLock.classList.toggle('active', isLocked);
-        btnLock.innerHTML = isLocked
-          ? '<span>🔓</span><span>Unlock Click (Ctrl+Alt+L)</span>'
-          : '<span>📌</span><span>Lock Click (Ctrl+Alt+L)</span>';
+        if(lockIcon) lockIcon.textContent = isLocked ? '🔓' : '📌';
+        if(lockLabel) lockLabel.textContent = isLocked ? 'Unlock Click' : 'Lock Click-thru';
       }
       if(isLocked){
         showToast('🔒 Click-Through LOCKED (Ctrl+Alt+L to Unlock)');
