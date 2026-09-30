@@ -49,6 +49,11 @@
     --guide-card-hover: rgba(22, 22, 32, 0.9);
     --code-bg: rgba(255, 255, 255, 0.06);
     --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --line: var(--border-card);
+    --card-bg: var(--bg-card);
+    --fg: var(--text-main);
+    --dim: var(--text-muted);
+    --accent: var(--accent-hex, #0078d4);
   }
 
   html[data-theme="light"] {
@@ -95,6 +100,11 @@
     --guide-card-hover: #ffffff;
     --code-bg: rgba(0, 0, 0, 0.05);
     --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    --line: var(--border-card);
+    --card-bg: var(--bg-card);
+    --fg: var(--text-main);
+    --dim: var(--text-muted);
+    --accent: var(--accent-hex, #0078d4);
   }
 
   *{box-sizing:border-box}
@@ -262,20 +272,61 @@
   .r-why{font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.5;overflow-wrap:anywhere}
   .r-ctl{flex:0 0 auto;margin-top:2px}
 
-  /* Real switches, not checkboxes */
-  .sw{
-    position:relative;width:40px;height:22px;border-radius:11px;background:var(--switch-bg);
-    border:1px solid var(--switch-border);padding:0;cursor:pointer;transition:background .15s,border-color .15s;
+  /* Fluent 2 Native Switches */
+  .sw {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 44px;
+    height: 22px;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    border-radius: 9999px;
+    background-color: var(--switch-bg);
+    border: 1px solid var(--switch-border);
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+    flex-shrink: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: background-color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .sw .knob{
-    position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:var(--switch-knob);
-    transition:left .15s,background .15s;
+  .sw:hover {
+    border-color: var(--border-card-hover);
   }
-  .sw:hover{border-color:var(--border-card-hover)}
-  .sw[aria-checked="true"]{background:var(--accent-hex,#0078d4);border-color:var(--accent-hex,#0078d4)}
-  .sw[aria-checked="true"] .knob{left:20px;background:#fff}
-  .sw[disabled]{opacity:.45;cursor:default}
-  .sw:focus-visible{outline:1px solid #8a8a8a;outline-offset:2px}
+  .sw .knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--switch-knob);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.18s ease, width 0.15s ease;
+    pointer-events: none;
+  }
+  .sw:active .knob {
+    width: 17px;
+  }
+  .sw[aria-checked="true"], .sw.on {
+    background-color: var(--accent-hex, #0078d4) !important;
+    border-color: var(--accent-hex, #0078d4) !important;
+  }
+  .sw[aria-checked="true"] .knob, .sw.on .knob {
+    transform: translateX(22px);
+    background-color: #ffffff !important;
+  }
+  .sw[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .sw:focus-visible {
+    outline: 2px solid var(--accent-hex, #0078d4);
+    outline-offset: 2px;
+  }
 
   select{
     background:var(--input-bg);border:1px solid var(--input-border);border-radius:9px;color:var(--text-main);font:inherit;
@@ -1140,6 +1191,575 @@
   .app-theme-title{font-size:13px;font-weight:700;color:var(--text-main);display:flex;align-items:center;gap:6px}
   .app-theme-desc{font-size:10.5px;color:var(--text-muted);line-height:1.4}
 
+  /* ---- OSD Telemetry Metric Cards & Icons Grid ---- */
+  .hw-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    box-shadow: var(--card-shadow);
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    box-sizing: border-box;
+  }
+  .metric-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-card-hover);
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  }
+  .metric-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+  .metric-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.18s ease;
+  }
+  .metric-card:hover .metric-icon-wrap {
+    transform: scale(1.08);
+  }
+  .metric-icon-wrap svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+  .metric-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .metric-name {
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.25;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .metric-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ---- Interactive HUD Monitor Canvas & Margin Studio ---- */
+  .hud-monitor-studio-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--card-shadow);
+  }
+  .dock-status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: rgba(0, 120, 215, 0.12);
+    color: var(--accent-hex, #0078d4);
+    border: 1px solid rgba(0, 120, 215, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .hud-monitor-outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .hud-monitor-screen {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    border-radius: 10px 10px 2px 2px;
+    background: linear-gradient(135deg, #0b0f17 0%, #151c28 50%, #0d121c 100%);
+    border: 2px solid #232733;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    user-select: none;
+    cursor: default;
+    box-sizing: border-box;
+  }
+  html[data-theme="light"] .hud-monitor-screen {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%);
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  }
+  .hud-monitor-chin {
+    width: 100%;
+    height: 10px;
+    background: #1c202a;
+    border-radius: 0 0 4px 4px;
+    border: 1px solid #232733;
+    border-top: none;
+  }
+  html[data-theme="light"] .hud-monitor-chin {
+    background: #94a3b8;
+    border-color: #cbd5e1;
+  }
+  .hud-monitor-stand {
+    width: 38px;
+    height: 18px;
+    background: linear-gradient(180deg, #1c202a, #11141c);
+    border-left: 1px solid #2a2e3d;
+    border-right: 1px solid #2a2e3d;
+  }
+  html[data-theme="light"] .hud-monitor-stand {
+    background: linear-gradient(180deg, #94a3b8, #64748b);
+    border-color: #cbd5e1;
+  }
+  .hud-monitor-base {
+    width: 110px;
+    height: 6px;
+    border-radius: 3px;
+    background: #232733;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+  html[data-theme="light"] .hud-monitor-base {
+    background: #64748b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Corner Dock Zones */
+  .hud-corner-zone {
+    position: absolute;
+    width: 82px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1.5px dashed rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.15s ease;
+    z-index: 2;
+    box-sizing: border-box;
+  }
+  html[data-theme="light"] .hud-corner-zone {
+    border-color: rgba(0, 0, 0, 0.18);
+    background: rgba(0, 0, 0, 0.02);
+  }
+  .hud-corner-zone:hover {
+    background: rgba(0, 120, 215, 0.15);
+    border-color: var(--accent-hex, #0078d4);
+  }
+  .hud-corner-zone.on {
+    border-style: solid;
+    border-color: var(--accent-hex, #0078d4);
+    background: rgba(0, 120, 215, 0.22);
+    box-shadow: 0 0 14px rgba(0, 120, 215, 0.35);
+  }
+  .hud-corner-zone[data-corner="top-left"] { top: 6px; left: 6px; }
+  .hud-corner-zone[data-corner="top-right"] { top: 6px; right: 6px; }
+  .hud-corner-zone[data-corner="bottom-left"] { bottom: 6px; left: 6px; }
+  .hud-corner-zone[data-corner="bottom-right"] { bottom: 6px; right: 6px; }
+
+  .corner-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.65);
+    pointer-events: none;
+    letter-spacing: 0.02em;
+  }
+  html[data-theme="light"] .corner-label {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  .hud-corner-zone.on .corner-label, .hud-corner-zone:hover .corner-label {
+    color: #ffffff;
+  }
+  html[data-theme="light"] .hud-corner-zone.on .corner-label,
+  html[data-theme="light"] .hud-corner-zone:hover .corner-label {
+    color: var(--accent-hex, #0078d4);
+  }
+
+  /* Center Free Drag Area Indicator */
+  .hud-center-free-zone {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  html[data-theme="light"] .hud-center-free-zone {
+    color: rgba(0, 0, 0, 0.35);
+  }
+
+  /* Margin Guides */
+  .hud-margin-guide {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s, top 0.15s, left 0.15s, right 0.15s, bottom 0.15s;
+    z-index: 1;
+  }
+  .hud-margin-guide.visible {
+    opacity: 1;
+  }
+  .hud-margin-guide.guide-x {
+    top: 0;
+    bottom: 0;
+    border-right: 1.5px dashed rgba(56, 189, 248, 0.5);
+  }
+  .hud-margin-guide.guide-y {
+    left: 0;
+    right: 0;
+    border-bottom: 1.5px dashed rgba(56, 189, 248, 0.5);
+  }
+
+  /* Draggable HUD Preview Pill */
+  .hud-preview-pill {
+    position: absolute;
+    width: 96px;
+    padding: 5px 8px;
+    background: rgba(18, 22, 32, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 7px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    cursor: grab;
+    z-index: 5;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    user-select: none;
+    touch-action: none;
+    box-sizing: border-box;
+  }
+  .hud-preview-pill:hover {
+    border-color: var(--accent-hex, #0078d4);
+    box-shadow: 0 0 16px rgba(0, 120, 215, 0.4);
+  }
+  .hud-preview-pill.dragging {
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 120, 215, 0.6);
+    border-color: #38bdf8;
+    transition: none !important;
+  }
+  html[data-theme="light"] .hud-preview-pill {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  }
+  .hud-pill-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 3px;
+  }
+  .hud-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+  }
+  .hud-pill-title {
+    font-size: 8.5px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.05em;
+  }
+  html[data-theme="light"] .hud-pill-title {
+    color: #0284c7;
+  }
+  .hud-pill-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    font-weight: 700;
+    font-family: Consolas, monospace;
+  }
+  .stat-fps { color: #f97316; }
+  .stat-gpu { color: #06b6d4; }
+
+  /* Presets Chips */
+  .btn-preset {
+    background: var(--input-bg);
+    border: 1px solid var(--border-card);
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .btn-preset:hover {
+    background: var(--btn-hover-bg);
+    color: var(--text-main);
+    border-color: var(--border-card-hover);
+  }
+  .btn-preset.on {
+    background: var(--bg-card-active);
+    color: var(--accent-hex, #0078d4);
+    border-color: var(--accent-hex, #0078d4);
+    font-weight: 700;
+  }
+
+  /* ---- Interactive Screen Edge Drag & Drop Studio ---- */
+  .edge-pos-studio-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--card-shadow);
+  }
+  .edge-monitor-canvas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .edge-monitor-inner {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    border-radius: 10px;
+    background: #080a10;
+    border: 2px solid #232733;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    user-select: none;
+    box-sizing: border-box;
+  }
+  html[data-theme="light"] .edge-monitor-inner {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+  }
+  .edge-desktop-surface {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(0, 120, 215, 0.08) 0%, transparent 70%);
+  }
+  .edge-center-watermark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-muted);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .edge-monitor-stand-mini {
+    width: 60px;
+    height: 8px;
+    border-radius: 0 0 6px 6px;
+    background: #232733;
+    margin-top: -1px;
+  }
+  html[data-theme="light"] .edge-monitor-stand-mini {
+    background: #94a3b8;
+  }
+
+  /* The Edge Drag Rail */
+  .edge-drag-rail {
+    position: absolute;
+    z-index: 5;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  /* Orientation: Right Edge */
+  .edge-drag-rail.rail-right {
+    top: 10px;
+    bottom: 10px;
+    right: 8px;
+    width: 24px;
+    border-left: 2px dashed rgba(255, 255, 255, 0.2);
+  }
+  /* Orientation: Left Edge */
+  .edge-drag-rail.rail-left {
+    top: 10px;
+    bottom: 10px;
+    left: 8px;
+    width: 24px;
+    border-right: 2px dashed rgba(255, 255, 255, 0.2);
+  }
+  /* Orientation: Top Edge */
+  .edge-drag-rail.rail-top {
+    top: 8px;
+    left: 10px;
+    right: 10px;
+    height: 24px;
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+  }
+  html[data-theme="light"] .edge-drag-rail {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Snap markers */
+  .edge-snap-marker {
+    position: absolute;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    font-family: Consolas, monospace;
+    opacity: 0.65;
+    transition: opacity 0.15s;
+  }
+  .rail-right .edge-snap-marker { right: 28px; transform: translateY(-50%); }
+  .rail-left .edge-snap-marker { left: 28px; transform: translateY(-50%); }
+  .rail-top .edge-snap-marker { top: 28px; transform: translateX(-50%); }
+
+  .marker-tick {
+    width: 6px;
+    height: 2px;
+    background: var(--text-dim);
+    border-radius: 1px;
+  }
+  .rail-top .marker-tick { width: 2px; height: 6px; }
+
+  /* Draggable Notch Pill */
+  .edge-draggable-notch {
+    position: absolute;
+    background: #09090d;
+    border: 1.5px solid var(--accent-hex, #0078d4);
+    box-shadow: 0 0 14px rgba(0, 120, 215, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .edge-draggable-notch:hover {
+    box-shadow: 0 0 20px rgba(0, 120, 215, 0.8), inset 0 0 0 1px #fff;
+    border-color: #38bdf8;
+  }
+  .edge-draggable-notch.dragging {
+    cursor: grabbing;
+    transform: scale(1.1);
+    box-shadow: 0 0 24px rgba(0, 120, 215, 1), 0 4px 16px rgba(0, 0, 0, 0.5);
+    border-color: #38bdf8;
+  }
+  /* Sizing for vertical edge (Right / Left) */
+  .rail-right .edge-draggable-notch, .rail-left .edge-draggable-notch {
+    width: 18px;
+    height: 48px;
+    transform: translateY(-50%);
+    flex-direction: column;
+  }
+  .rail-right .edge-draggable-notch { right: -9px; }
+  .rail-left .edge-draggable-notch { left: -9px; }
+
+  /* Sizing for horizontal edge (Top) */
+  .rail-top .edge-draggable-notch {
+    height: 18px;
+    width: 58px;
+    top: -9px;
+    transform: translateX(-50%);
+    flex-direction: row;
+  }
+
+  .notch-pill-rings {
+    display: flex;
+    gap: 3px;
+  }
+  .rail-right .notch-pill-rings, .rail-left .notch-pill-rings { flex-direction: column; }
+  .rail-top .notch-pill-rings { flex-direction: row; }
+
+  .pill-ring {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent-hex, #0078d4);
+  }
+  .pill-ring.ring-1 { border-color: #38bdf8; }
+  .pill-ring.ring-2 { border-color: #a78bfa; }
+
+  .notch-pill-handle {
+    display: flex;
+    gap: 2px;
+    opacity: 0.6;
+  }
+  .rail-right .notch-pill-handle, .rail-left .notch-pill-handle { flex-direction: row; margin-top: 4px; }
+  .rail-top .notch-pill-handle { flex-direction: column; margin-left: 5px; }
+
+  .pill-handle-bar {
+    width: 2px;
+    height: 8px;
+    background: #fff;
+    border-radius: 1px;
+  }
+  .rail-top .pill-handle-bar { width: 8px; height: 2px; }
+
+  /* Floating Drag Tooltip */
+  .notch-drag-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--accent-hex, #0078d4);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: Consolas, monospace;
+    padding: 3px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 20;
+  }
+  .edge-draggable-notch.dragging .notch-drag-tooltip,
+  .edge-draggable-notch:hover .notch-drag-tooltip {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .rail-right .notch-drag-tooltip { right: 28px; top: 50%; transform: translateY(-50%); }
+  .rail-left .notch-drag-tooltip { left: 28px; top: 50%; transform: translateY(-50%); }
+  .rail-top .notch-drag-tooltip { top: 28px; left: 50%; transform: translateX(-50%); }
+
   /* ---- RTL System ---- */
   html[dir="rtl"] body {
     direction: rtl;
@@ -1158,11 +1778,12 @@
   }
   html[dir="rtl"] .sw .knob {
     left: auto;
-    right: 2px;
+    right: 3px;
+    transform: none;
   }
-  html[dir="rtl"] .sw[aria-checked="true"] .knob {
-    right: 20px;
-    left: auto;
+  html[dir="rtl"] .sw[aria-checked="true"] .knob,
+  html[dir="rtl"] .sw.on .knob {
+    transform: translateX(-22px);
   }
   html[dir="rtl"] .np-win-select {
     padding: 5px 9px 5px 26px;
@@ -1803,14 +2424,72 @@
       <div class="block">
         <div class="b-head">Position along Screen Edge</div>
         <div class="b-sub" id="pos-sub">Move the notch higher or lower along the edge of your screen.</div>
-        <div class="pos-presets">
-          <button class="pos-btn" data-pos="0.15" id="pos-btn-top">Top (15%)</button>
-          <button class="pos-btn on" data-pos="0.50" id="pos-btn-center">Center (50%)</button>
-          <button class="pos-btn" data-pos="0.85" id="pos-btn-bottom">Bottom (85%)</button>
-        </div>
-        <div class="c-scale" style="margin-top:12px">
-          <input id="pos-range" type="range" min="10" max="90" step="1" value="50" aria-label="Notch position">
-          <span class="c-scale-val" id="pos-val">50%</span>
+
+        <!-- Interactive Screen Edge Drag & Drop Studio -->
+        <div class="edge-pos-studio-card" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent);"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>
+              <span style="font-weight:700;font-size:12.5px;">Interactive Edge Drag &amp; Drop</span>
+            </div>
+            <div id="edge-pos-badge" class="dock-status-badge">
+              Position: 50% (Center)
+            </div>
+          </div>
+
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px;">
+            Drag the notch along the screen edge to set its exact position, or click anywhere on the edge track:
+          </div>
+
+          <!-- Interactive Screen Frame with Active Edge Rail -->
+          <div class="edge-monitor-canvas" id="edge-monitor-canvas">
+            <div class="edge-monitor-inner" id="edge-monitor-inner">
+              <!-- Wallpaper / Desktop surface -->
+              <div class="edge-desktop-surface">
+                <div class="edge-center-watermark">
+                  <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.4"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  <span id="edge-surface-label" style="font-size:11px;opacity:0.65;font-weight:600;margin-top:4px;">Right Edge Active</span>
+                </div>
+              </div>
+
+              <!-- Interactive Edge Rail Track -->
+              <div class="edge-drag-rail rail-right" id="edge-drag-rail">
+                <!-- Snap Marker Lines & Labels -->
+                <div class="edge-snap-marker marker-15" data-pos="0.15" style="top:15%"><span class="marker-tick"></span><span class="marker-text">15%</span></div>
+                <div class="edge-snap-marker marker-50" data-pos="0.50" style="top:50%"><span class="marker-tick"></span><span class="marker-text">50%</span></div>
+                <div class="edge-snap-marker marker-85" data-pos="0.85" style="top:85%"><span class="marker-tick"></span><span class="marker-text">85%</span></div>
+
+                <!-- Draggable Notch Pill Representation -->
+                <div class="edge-draggable-notch" id="edge-draggable-notch" tabindex="0" role="slider" aria-label="Draggable Notch Pill" aria-valuemin="5" aria-valuemax="95" aria-valuenow="50" style="top:50%">
+                  <div class="notch-pill-rings">
+                    <span class="pill-ring ring-1"></span>
+                    <span class="pill-ring ring-2"></span>
+                  </div>
+                  <div class="notch-pill-handle">
+                    <span class="pill-handle-bar"></span>
+                    <span class="pill-handle-bar"></span>
+                    <span class="pill-handle-bar"></span>
+                  </div>
+                  <!-- Floating tooltip above or next to notch while dragging -->
+                  <div class="notch-drag-tooltip" id="notch-drag-tooltip">50%</div>
+                </div>
+              </div>
+            </div>
+            <div class="edge-monitor-stand-mini"></div>
+          </div>
+
+          <!-- Bottom Preset Buttons and Fine Range Slider -->
+          <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div class="pos-presets" style="margin:0;">
+              <button class="pos-btn" data-pos="0.15" id="pos-btn-top">Top (15%)</button>
+              <button class="pos-btn on" data-pos="0.50" id="pos-btn-center">Center (50%)</button>
+              <button class="pos-btn" data-pos="0.85" id="pos-btn-bottom">Bottom (85%)</button>
+            </div>
+            <div class="c-scale" style="flex:1;min-width:180px;display:flex;align-items:center;gap:10px;margin:0;">
+              <input id="pos-range" type="range" min="5" max="95" step="1" value="50" aria-label="Notch position" style="flex:1;accent-color:var(--accent);">
+              <span class="c-scale-val" id="pos-val" style="font-weight:700;font-family:Consolas,monospace;min-width:44px;text-align:right;">50%</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2114,147 +2793,204 @@
       <!-- OSD Metrics & Telemetry Elements Grid (تخصيص قراءات الشاشة العائمة) -->
       <div class="block">
         <div class="b-head">OSD Telemetry Elements &amp; Metrics</div>
-        <div class="b-sub">Choose which in-game telemetry metrics, hardware sensors, and counters appear on the floating HUD.</div>
-
-        <div class="hw-metrics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:10px;margin-top:12px;">
+        <div class="b-sub">Choose which in-game telemetry metrics, hardware sensors, and counters appear        <div class="hw-metrics-grid">
           <!-- FPS & Frametime -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(249,115,22,0.14);color:#f97316;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div class="metric-card" data-metric="fps">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(249,115,22,0.12);color:#f97316;border:1px solid rgba(249,115,22,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3a9 9 0 0 0-9 9c0 3.5 2 6.5 5 7.8"/>
+                  <path d="M16 19.8c3-1.3 5-4.3 5-7.8a9 9 0 0 0-9-9"/>
+                  <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                  <path d="M12 12l4-4" stroke-width="2.2"/>
+                  <path d="M8 12h.01M16 12h.01M12 8h.01"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#f97316;">FPS &amp; Frametime</div>
-                <div style="font-size:11px;color:var(--dim);">Real-time frame rate &amp; frame latency in ms (1000/FPS).</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#f97316;">FPS &amp; Frametime</div>
+                <div class="metric-desc">Real-time frame rate &amp; frame latency in ms (1000/FPS).</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-fps" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-fps" role="switch" aria-checked="true" aria-label="FPS & Frametime switch"><span class="knob"></span></button>
           </div>
 
           <!-- 1% Low & Avg FPS -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(251,146,60,0.14);color:#fb923c;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+          <div class="metric-card" data-metric="low">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 3v18h18"/>
+                  <path d="M7 16l4-6 4 4 6-9" stroke-width="2.2"/>
+                  <line x1="7" y1="16" x2="21" y2="16" stroke-dasharray="2 2" stroke-width="1.5" opacity="0.7"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#fb923c;">1% Low &amp; Avg FPS</div>
-                <div style="font-size:11px;color:var(--dim);">99th percentile stutter floor &amp; rolling session average.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#fb923c;">1% Low &amp; Avg FPS</div>
+                <div class="metric-desc">99th percentile stutter floor &amp; rolling session average.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-low" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-low" role="switch" aria-checked="true" aria-label="1% Low & Avg FPS switch"><span class="knob"></span></button>
           </div>
 
           <!-- GPU Load, Clock & Temp -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(6,182,212,0.14);color:#06b6d4;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2.5"/><circle cx="16" cy="12" r="2.5"/><path d="M2 10h20"/></svg>
+          <div class="metric-card" data-metric="gpu">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="20" height="12" rx="2"/>
+                  <circle cx="8" cy="11" r="3"/>
+                  <path d="M8 9.5v3M6.5 11h3"/>
+                  <circle cx="16" cy="11" r="3"/>
+                  <path d="M16 9.5v3M14.5 11h3"/>
+                  <path d="M5 17v2h4v-2M13 17v2h6v-2"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#06b6d4;">GPU Load, Clock &amp; Temp</div>
-                <div style="font-size:11px;color:var(--dim);">Direct GPU core load %, MHz boost clock, and °C sensor.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#06b6d4;">GPU Load, Clock &amp; Temp</div>
+                <div class="metric-desc">Direct GPU core load %, MHz boost clock, and °C sensor.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-gpu" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-gpu" role="switch" aria-checked="true" aria-label="GPU Load switch"><span class="knob"></span></button>
           </div>
 
           <!-- VRAM Dedicated Memory -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(56,189,248,0.14);color:#38bdf8;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="7" y2="10"/><line x1="12" y1="8" x2="12" y2="10"/><line x1="17" y1="8" x2="17" y2="10"/><line x1="7" y1="14" x2="17" y2="14"/></svg>
+          <div class="metric-card" data-metric="vram">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <rect x="6" y="7" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.25"/>
+                  <rect x="13" y="7" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.25"/>
+                  <rect x="6" y="13" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.25"/>
+                  <rect x="13" y="13" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.25"/>
+                  <line x1="3" y1="2" x2="3" y2="4"/><line x1="7" y1="2" x2="7" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="17" y1="2" x2="17" y2="4"/><line x1="21" y1="2" x2="21" y2="4"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#38bdf8;">VRAM Video Memory</div>
-                <div style="font-size:11px;color:var(--dim);">Dedicated graphics buffer allocation in GB and percentage.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#38bdf8;">VRAM Video Memory</div>
+                <div class="metric-desc">Dedicated graphics buffer allocation in GB and percentage.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-vram" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-vram" role="switch" aria-checked="true" aria-label="VRAM switch"><span class="knob"></span></button>
           </div>
 
           <!-- CPU Load, Clock & Temp -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(225,29,72,0.14);color:#e11d48;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+          <div class="metric-card" data-metric="cpu">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(244,63,94,0.12);color:#f43f5e;border:1px solid rgba(244,63,94,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" fill="currentColor" fill-opacity="0.25"/>
+                  <line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/>
+                  <line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/>
+                  <line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/>
+                  <line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#e11d48;">CPU Load, Clock &amp; Temp</div>
-                <div style="font-size:11px;color:var(--dim);">Core package utilization %, GHz clock, °C heat, and cores.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#f43f5e;">CPU Load, Clock &amp; Temp</div>
+                <div class="metric-desc">Core package utilization %, GHz clock, °C heat, and cores.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-cpu" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-cpu" role="switch" aria-checked="true" aria-label="CPU Load switch"><span class="knob"></span></button>
           </div>
 
           <!-- RAM System Memory -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(192,132,252,0.14);color:#c084fc;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19v-3"/><path d="M10 19v-3"/><path d="M14 19v-3"/><path d="M18 19v-3"/><rect x="2" y="5" width="20" height="10" rx="2"/></svg>
+          <div class="metric-card" data-metric="ram">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(192,132,252,0.12);color:#c084fc;border:1px solid rgba(192,132,252,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="20" height="10" rx="1.5"/>
+                  <rect x="4.5" y="9.5" width="3" height="5" rx="0.5" fill="currentColor" fill-opacity="0.3"/>
+                  <rect x="9" y="9.5" width="3" height="5" rx="0.5" fill="currentColor" fill-opacity="0.3"/>
+                  <rect x="13.5" y="9.5" width="3" height="5" rx="0.5" fill="currentColor" fill-opacity="0.3"/>
+                  <rect x="18" y="9.5" width="1.5" height="5" rx="0.5" fill="currentColor" fill-opacity="0.3"/>
+                  <line x1="3" y1="17" x2="3" y2="19"/><line x1="6" y1="17" x2="6" y2="19"/><line x1="9" y1="17" x2="9" y2="19"/>
+                  <line x1="14" y1="17" x2="14" y2="19"/><line x1="17" y1="17" x2="17" y2="19"/><line x1="20" y1="17" x2="20" y2="19"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#c084fc;">RAM System Memory</div>
-                <div style="font-size:11px;color:var(--dim);">Used physical memory out of total capacity in GB.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#c084fc;">RAM System Memory</div>
+                <div class="metric-desc">Used physical memory out of total capacity in GB.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-ram" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-ram" role="switch" aria-checked="true" aria-label="RAM switch"><span class="knob"></span></button>
           </div>
 
           <!-- Pagefile Commit Charge -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(168,85,247,0.14);color:#a855f7;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <div class="metric-card" data-metric="page">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="7" rx="2"/>
+                  <rect x="3" y="14" width="18" height="7" rx="2"/>
+                  <circle cx="7" cy="6.5" r="1" fill="currentColor"/>
+                  <circle cx="7" cy="17.5" r="1" fill="currentColor"/>
+                  <path d="M14 6.5h3M14 17.5h3"/>
+                  <path d="M12 10v4M9.5 12l2.5 2 2.5-2"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#a855f7;">Pagefile Commit Charge</div>
-                <div style="font-size:11px;color:var(--dim);">Total virtual memory commit charge allocated by Windows.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#a855f7;">Pagefile Commit Charge</div>
+                <div class="metric-desc">Total virtual memory commit charge allocated by Windows.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-page" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-page" role="switch" aria-checked="true" aria-label="Pagefile switch"><span class="knob"></span></button>
           </div>
 
           <!-- Live Network Speeds -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(16,185,129,0.14);color:#10b981;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg>
+          <div class="metric-card" data-metric="net">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 16V4M4 7l3-3 3 3"/>
+                  <path d="M17 8v12M14 17l3 3 3-3"/>
+                  <path d="M11 12h2" stroke-width="1.5" stroke-dasharray="1 1"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#10b981;">Live Network Speeds</div>
-                <div style="font-size:11px;color:var(--dim);">Real-time download (↓) and upload (↑) bandwidth rates.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#10b981;">Live Network Speeds</div>
+                <div class="metric-desc">Real-time download (↓) and upload (↑) bandwidth rates.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-net" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-net" role="switch" aria-checked="true" aria-label="Network switch"><span class="knob"></span></button>
           </div>
 
           <!-- Today's Bandwidth -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(245,158,11,0.14);color:#f59e0b;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <div class="metric-card" data-metric="day">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <path d="M8 15v-2M12 15v-4M16 15v-6" stroke-width="2.2"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#f59e0b;">Today's Bandwidth</div>
-                <div style="font-size:11px;color:var(--dim);">Cumulative daily network consumption with midnight reset.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#f59e0b;">Today's Bandwidth</div>
+                <div class="metric-desc">Cumulative daily network consumption with midnight reset.</div>
               </div>
             </div>
-            <button class="sw on" id="sw-metric-day" role="switch" aria-checked="true"><span class="knob"></span></button>
+            <button class="sw on" id="sw-metric-day" role="switch" aria-checked="true" aria-label="Daily bandwidth switch"><span class="knob"></span></button>
           </div>
 
           <!-- Active Game Title -->
-          <div class="card" style="padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="metric-icon-badge" style="background:rgba(163,230,53,0.14);color:#a3e635;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+          <div class="metric-card" data-metric="app">
+            <div class="metric-left">
+              <div class="metric-icon-wrap" style="background:rgba(132,204,22,0.12);color:#84cc16;border:1px solid rgba(132,204,22,0.25);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="6" width="20" height="12" rx="6"/>
+                  <line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/>
+                  <circle cx="15.5" cy="10.5" r=".75" fill="currentColor"/><circle cx="17.5" cy="12" r=".75" fill="currentColor"/>
+                  <circle cx="15.5" cy="13.5" r=".75" fill="currentColor"/><circle cx="13.5" cy="12" r=".75" fill="currentColor"/>
+                </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#a3e635;">Active Game / Process</div>
-                <div style="font-size:11px;color:var(--dim);">Detected 3D game executable or focused window title.</div>
+              <div class="metric-info">
+                <div class="metric-name" style="color:#84cc16;">Active Game / Process</div>
+                <div class="metric-desc">Detected 3D game executable or focused window title.</div>
               </div>
             </div>
-            <button class="sw" id="sw-metric-app" role="switch" aria-checked="false"><span class="knob"></span></button>
+            <button class="sw" id="sw-metric-app" role="switch" aria-checked="false" aria-label="Active Game switch"><span class="knob"></span></button>
           </div>
         </div>
       </div>
@@ -2291,53 +3027,124 @@
             </div>
           </div>
         </div>
+      </div>
+
       <!-- HUD Docking & Screen Margin -->
       <div class="block">
         <div class="b-head">HUD Docking &amp; Screen Margin</div>
         <div class="b-sub">Pin the telemetry HUD to any corner of your monitor with custom pixel margin (0px = 100% flush against bezel).</div>
 
-        <div class="row">
-          <div class="r-text">
-            <div class="r-name">Screen Corner Dock</div>
-            <div class="r-why">Dock directly to monitor corners or allow free floating movement.</div>
-          </div>
-          <div class="r-ctl">
-            <div class="style-grid" id="hud-dock-grid" style="display:flex;gap:6px;flex-wrap:wrap;">
-              <div class="style-card on" data-hud-dock="top-left" style="display:inline-flex;align-items:center;padding:6px 10px;font-size:11px;cursor:pointer;border:1px solid var(--line);border-radius:6px;font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><line x1="17" y1="17" x2="7" y2="7"/><polyline points="7 17 7 7 17 7"/></svg>Top-Left</div>
-              <div class="style-card" data-hud-dock="top-right" style="display:inline-flex;align-items:center;padding:6px 10px;font-size:11px;cursor:pointer;border:1px solid var(--line);border-radius:6px;font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>Top-Right</div>
-              <div class="style-card" data-hud-dock="bottom-left" style="display:inline-flex;align-items:center;padding:6px 10px;font-size:11px;cursor:pointer;border:1px solid var(--line);border-radius:6px;font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>Bottom-Left</div>
-              <div class="style-card" data-hud-dock="bottom-right" style="display:inline-flex;align-items:center;padding:6px 10px;font-size:11px;cursor:pointer;border:1px solid var(--line);border-radius:6px;font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="7 17 17 17 17 7"/></svg>Bottom-Right</div>
-              <div class="style-card" data-hud-dock="custom" style="display:inline-flex;align-items:center;padding:6px 10px;font-size:11px;cursor:pointer;border:1px solid var(--line);border-radius:6px;font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>Free Drag</div>
-            </div>
-          </div>
+        <!-- Hidden legacy grid for 100% compatibility -->
+        <div id="hud-dock-grid" style="display:none;">
+          <div class="style-card on" data-hud-dock="top-left">Top-Left</div>
+          <div class="style-card" data-hud-dock="top-right">Top-Right</div>
+          <div class="style-card" data-hud-dock="bottom-left">Bottom-Left</div>
+          <div class="style-card" data-hud-dock="bottom-right">Bottom-Right</div>
+          <div class="style-card" data-hud-dock="custom">Free Drag</div>
         </div>
 
-        <div class="row">
-          <div class="r-text">
-            <div class="r-name">Horizontal Margin (X)</div>
-            <div class="r-why">Distance from left/right screen edge in pixels. Set 0px for zero border.</div>
-          </div>
-          <div class="r-ctl" style="display:flex;align-items:center;gap:10px;">
-            <button class="btn" id="btn-hud-margin-zero-x" style="padding:4px 8px;font-size:11px;">0px Flush</button>
-            <input type="range" id="hud-margin-range-x" min="0" max="120" value="8" style="width:100px;accent-color:var(--accent);">
-            <div style="display:flex;align-items:center;gap:2px;background:var(--card-bg);padding:4px 8px;border-radius:6px;border:1px solid var(--line);">
-              <input type="number" id="hud-margin-num-x" min="0" max="120" value="8" style="width:36px;border:none;background:transparent;color:var(--fg);font-weight:700;font-family:Consolas,monospace;text-align:center;outline:none;">
-              <span style="font-size:11px;color:var(--dim)">px</span>
+        <!-- Interactive Monitor Docking Canvas -->
+        <div class="hud-monitor-studio-card" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent);"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <span style="font-weight:700;font-size:12.5px;">Interactive Monitor Studio</span>
+            </div>
+            <div id="hud-dock-status-badge" class="dock-status-badge">
+              Top-Left Docked (8px, 8px)
             </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="r-text">
-            <div class="r-name">Vertical Margin (Y)</div>
-            <div class="r-why">Distance from top/bottom screen edge in pixels. Set 0px for zero border.</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px;">
+            Drag the HUD pill inside the monitor preview or click any corner to dock:
           </div>
-          <div class="r-ctl" style="display:flex;align-items:center;gap:10px;">
-            <button class="btn" id="btn-hud-margin-zero-y" style="padding:4px 8px;font-size:11px;">0px Flush</button>
-            <input type="range" id="hud-margin-range-y" min="0" max="120" value="8" style="width:100px;accent-color:var(--accent);">
-            <div style="display:flex;align-items:center;gap:2px;background:var(--card-bg);padding:4px 8px;border-radius:6px;border:1px solid var(--line);">
-              <input type="number" id="hud-margin-num-y" min="0" max="120" value="8" style="width:36px;border:none;background:transparent;color:var(--fg);font-weight:700;font-family:Consolas,monospace;text-align:center;outline:none;">
-              <span style="font-size:11px;color:var(--dim)">px</span>
+
+          <!-- Monitor Mockup -->
+          <div class="hud-monitor-outer">
+            <div class="hud-monitor-screen" id="hud-monitor-screen">
+              <!-- Corner Dock Targets -->
+              <div class="hud-corner-zone on" data-corner="top-left" title="Dock Top-Left (↖)">
+                <span class="corner-label">↖ Top-Left</span>
+              </div>
+              <div class="hud-corner-zone" data-corner="top-right" title="Dock Top-Right (↗)">
+                <span class="corner-label">↗ Top-Right</span>
+              </div>
+              <div class="hud-corner-zone" data-corner="bottom-left" title="Dock Bottom-Left (↙)">
+                <span class="corner-label">↙ Bottom-Left</span>
+              </div>
+              <div class="hud-corner-zone" data-corner="bottom-right" title="Dock Bottom-Right (↘)">
+                <span class="corner-label">↘ Bottom-Right</span>
+              </div>
+
+              <!-- Center Free Drag Zone Indicator -->
+              <div class="hud-center-free-zone" id="hud-free-zone" title="Drag HUD here for Free Floating">
+                <span>✥ Free Drag Zone</span>
+              </div>
+
+              <!-- Margin Guide Lines -->
+              <div class="hud-margin-guide guide-x visible" id="hud-guide-x" style="left:8px;"></div>
+              <div class="hud-margin-guide guide-y visible" id="hud-guide-y" style="top:8px;"></div>
+
+              <!-- The Draggable Interactive Miniature HUD Pill -->
+              <div class="hud-preview-pill" id="hud-preview-pill" title="Click &amp; Drag HUD anywhere on screen" style="top:8px;left:8px;">
+                <div class="hud-pill-head">
+                  <span class="hud-pill-dot"></span>
+                  <span class="hud-pill-title">HUD OVERLAY</span>
+                </div>
+                <div class="hud-pill-stats">
+                  <span class="pill-stat stat-fps">144 FPS</span>
+                  <span class="pill-stat stat-gpu">62°C</span>
+                </div>
+              </div>
+            </div>
+            <!-- Monitor Chin & Stand -->
+            <div class="hud-monitor-chin"></div>
+            <div class="hud-monitor-stand"></div>
+            <div class="hud-monitor-base"></div>
+          </div>
+
+          <!-- Presets and Sliders -->
+          <div class="hud-margin-controls-wrap" style="margin-top:16px;border-top:1px solid var(--border-subtle);padding-top:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+              <span style="font-weight:600;font-size:12px;color:var(--text-main);">Screen Margin Presets:</span>
+              <div class="hud-preset-chips" style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="btn-preset" data-margin-preset="0">0px Flush</button>
+                <button type="button" class="btn-preset on" data-margin-preset="8">8px Standard</button>
+                <button type="button" class="btn-preset" data-margin-preset="16">16px Floating</button>
+                <button type="button" class="btn-preset" data-margin-preset="24">24px Spacious</button>
+              </div>
+            </div>
+
+            <div class="margin-sliders-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;">
+              <!-- Horizontal X -->
+              <div class="margin-slider-item">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;font-weight:600;">Horizontal Margin (X)</span>
+                  <div style="display:flex;align-items:center;gap:3px;background:var(--input-bg);padding:2px 8px;border-radius:6px;border:1px solid var(--input-border);">
+                    <input type="number" id="hud-margin-num-x" min="0" max="120" value="8" style="width:34px;border:none;background:transparent;color:var(--text-main);font-weight:700;font-family:Consolas,monospace;text-align:center;outline:none;font-size:12px;">
+                    <span style="font-size:11px;color:var(--text-muted)">px</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button class="btn" id="btn-hud-margin-zero-x" style="padding:4px 8px;font-size:11px;white-space:nowrap;">0px Flush</button>
+                  <input type="range" id="hud-margin-range-x" min="0" max="120" value="8" style="flex:1;accent-color:var(--accent);">
+                </div>
+              </div>
+
+              <!-- Vertical Y -->
+              <div class="margin-slider-item">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;font-weight:600;">Vertical Margin (Y)</span>
+                  <div style="display:flex;align-items:center;gap:3px;background:var(--input-bg);padding:2px 8px;border-radius:6px;border:1px solid var(--input-border);">
+                    <input type="number" id="hud-margin-num-y" min="0" max="120" value="8" style="width:34px;border:none;background:transparent;color:var(--text-main);font-weight:700;font-family:Consolas,monospace;text-align:center;outline:none;font-size:12px;">
+                    <span style="font-size:11px;color:var(--text-muted)">px</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button class="btn" id="btn-hud-margin-zero-y" style="padding:4px 8px;font-size:11px;white-space:nowrap;">0px Flush</button>
+                  <input type="range" id="hud-margin-range-y" min="0" max="120" value="8" style="flex:1;accent-color:var(--accent);">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2694,16 +3501,16 @@ const AR_STATIC = {
   'Right-click on the notch or taskbar icon for instant refresh, docking, or settings.': 'انقر بزر الفأرة الأيمن على الشريط أو الأيقونة للتحديث السريع، الإخفاء، أو فتح الإعدادات.',
   'Visual Material & Glass Effect': 'التأثير الزجاجي وخامة المظهر',
   'Select how the floating notch and popups are rendered against your desktop.': 'اختر كيفية عرض الشريط العائم والنوافذ المنبثقة فوق سطح المكتب.',
-  'Windows 11': 'ويندوز 11',
+  'Windows 11': 'أكريليك ويندوز 11 (Fluent 2)',
   'Minimal Fluent 2 neutral acrylic smoke panel with subtle Microsoft highlights.': 'لوحة أكريليك Fluent 2 أنيقة مع تأثيرات ويندوز التفاعلية.',
-  'Apple Glass': 'زجاج آبل',
-  'Dynamic liquid frosted glass reflecting desktop wallpaper colors & specular 3D bevel.': 'زجاج سائل عاكس لألوان الخلفية مع حواف ثلاثية الأبعاد.',
-  'OLED Black': 'أسود OLED',
-  '100% pure black with high contrast neon rings. Zero blur.': 'أسود نقي داكن 100% مع حلقات عالية التباين وبدون ضبابية.',
-  'Solid Dark': 'رمادي داكن كلاسيكي',
-  'Matte dark graphite finish. Clean, opaque, and minimal.': 'تصميم غير شفاف من الجرافيت الداكن، نظيف وبسيط.',
-  'Custom Accent': 'لون مخصص',
-  'Choose a custom tint color for the notch and glow.': 'اختر لوناً مميزاً لحلقات الشريط والتوهج.',
+  'Apple Glass': 'تأثير الزجاج الشفاف (Liquid Glass)',
+  'Dynamic liquid frosted glass reflecting desktop wallpaper colors & specular 3D bevel.': 'تأثير زجاجي مصقول وعاكس لألوان سطح المكتب مع حواف ثلاثية الأبعاد ديناميكية.',
+  'OLED Black': 'الأسود الداكن الفاحم (OLED Black)',
+  '100% pure black with high contrast neon rings. Zero blur.': 'أسود نقي 100% موفر للطاقة مع حلقات نيون عالية التباين وبدون ضبابية.',
+  'Solid Dark': 'الرمادي الداكن المطفأ (Solid Dark)',
+  'Matte dark graphite finish. Clean, opaque, and minimal.': 'تشطيب جرافيتي داكن غير شفاف، يتميز بالنظافة والبساطة المطلقة.',
+  'Custom Accent': 'تلوين مخصص (Custom Accent)',
+  'Choose a custom tint color for the notch and glow.': 'اختر لون تمييز مخصص لتوهج وحلقات الشريط العائم.',
   'Accent Color': 'لون التمييز',
   'Choose an accent color for ring highlights, borders, and custom glow.': 'حدد لون التوهج والحدود النشطة ليتماشى مع ذوقك.',
   'Screen Edge Attachment': 'محاذاة حافة الشاشة',
@@ -2914,7 +3721,38 @@ const AR_STATIC = {
   'Hardware Vitals': 'موارد وعتاد الجهاز',
   'Displays live CPU usage % in top row, and RAM usage % in bottom row.': 'عرض نسبة استهلاك المعالج في الصف العلوي ونسبة الرام في الصف السفلي للأيقونة.',
   'Network Speeds': 'سرعات واستهلاك الشبكة',
-  'Displays download activity in tray icon and full daily consumption in tooltip.': 'عرض نشاط التحميل في الأيقونة وإجمالي استهلاك اليوم في نافذة التلميح.'
+  'Displays download activity in tray icon and full daily consumption in tooltip.': 'عرض نشاط التحميل في الأيقونة وإجمالي استهلاك اليوم في نافذة التلميح.',
+  'HUD Docking & Screen Margin': 'محاذاة شاشة الألعاب وهوامش الشاشة (HUD Docking)',
+  'Pin the telemetry HUD to any corner of your monitor with custom pixel margin (0px = 100% flush against bezel).': 'تثبيت شاشة القراءات في أي زاوية من الشاشة مع ضبط الهوامش بالبكسل (0 بكسل = ملاصق لحافة الإطار).',
+  'Screen Corner Dock': 'زاوية تثبيت الشاشة العائمة',
+  'Dock directly to monitor corners or allow free floating movement.': 'التثبيت المباشر في زوايا الشاشة أو التحريك الحر في أي مكان.',
+  'Interactive Monitor Studio': 'المعاينة التفاعلية على الشاشة',
+  'Drag the HUD pill inside the monitor preview or click any corner to dock:': 'اسحب بطاقة الـ HUD داخل الشاشة أو انقر على أي زاوية للتثبيت المباشر:',
+  'Click & Drag HUD anywhere on screen': 'انقر واسحب شاشة الـ HUD لأي مكان على الشاشة',
+  'Horizontal Margin (X)': 'الهامش الأفقي (X)',
+  'Distance from left/right screen edge in pixels. Set 0px for zero border.': 'المسافة من حافة الشاشة بالبكسل. اضبطه على 0 للملاصقة التامة بالإطار.',
+  'Vertical Margin (Y)': 'الهامش الرأسي (Y)',
+  'Distance from top/bottom screen edge in pixels. Set 0px for zero border.': 'المسافة من حافة الشاشة العلوية/السفلية بالبكسل. اضبطه على 0 للملاصقة التامة بالإطار.',
+  '0px Flush': '0 بكسل (ملاصق)',
+  '8px Standard': '8 بكسل (قياسي)',
+  '16px Floating': '16 بكسل (عائم)',
+  '24px Spacious': '24 بكسل (موسع)',
+  'Screen Margin Presets:': 'الهوامش الجاهزة للشاشة:',
+  'Top-Left': 'أعلى اليسار',
+  'Top-Right': 'أعلى اليمين',
+  'Bottom-Left': 'أسفل اليسار',
+  'Bottom-Right': 'أسفل اليمين',
+  'Free Drag': 'سحب حر (Free Drag)',
+  'Free Drag Zone': 'منطقة السحب الحر',
+  'Interactive Edge Drag & Drop': 'سحب وإفلات تفاعلي على حافة الشاشة',
+  'Drag the notch along the screen edge to set its exact position, or click anywhere on the edge track:': 'اسحب الشريط بحرية على طول حافة الشاشة لتحديد موضعه بدقة، أو انقر في أي مكان على المسار:',
+  'Move the notch left or right along the top edge of your screen.': 'تحريك الشريط لليسار أو اليمين على طول الحافة العلوية لشاشتك.',
+  'Move the notch higher or lower along the edge of your screen.': 'تحريك الشريط للأعلى أو الأسفل على طول حافة شاشتك.',
+  'Left (15%)': 'اليسار (15%)',
+  'Right (85%)': 'اليمين (85%)',
+  'Top (15%)': 'في الأعلى (15%)',
+  'Center (50%)': 'في المنتصف (50%)',
+  'Bottom (85%)': 'في الأسفل (85%)'
 };
 
 const STATUS_TEXT = {
@@ -3056,6 +3894,12 @@ function showTab(id, moveFocus){
   document.documentElement.scrollLeft = 0;
   document.body.scrollLeft = 0;
   try { localStorage.setItem(TAB_KEY, id); } catch(e) { /* private mode: the tab simply is not remembered */ }
+  if(id === 'hardware' && typeof renderHudMonitorStudio === 'function'){
+    requestAnimationFrame(renderHudMonitorStudio);
+  }
+  if(id === 'customization' && typeof renderEdgeStudio === 'function'){
+    requestAnimationFrame(renderEdgeStudio);
+  }
   if(moveFocus){
     const btn = document.getElementById('tab-' + id);
     if(btn) btn.focus();
@@ -4107,7 +4951,9 @@ function clampPct(v){
 function setSwitch(id, on, disabled){
   const el = document.getElementById(id);
   if(!el) return;
-  el.setAttribute('aria-checked', on ? 'true' : 'false');
+  const isChecked = !!on;
+  el.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+  el.classList.toggle('on', isChecked);
   if(disabled) el.setAttribute('disabled', '');
   else el.removeAttribute('disabled');
 }
@@ -4286,6 +5132,10 @@ function renderAppearanceUI(){
   const peek = liveAppearance.autohide_peek ?? 14;
   if(peekRange) peekRange.value = String(peek);
   if(peekVal) peekVal.textContent = peek === 0 ? '0px (Hidden)' : (peek + 'px');
+
+  if(typeof renderEdgeStudio === 'function'){
+    renderEdgeStudio();
+  }
 }
 
 function saveAppearance(){
@@ -4301,6 +5151,71 @@ function updatePosButtons(ratio){
     const targetPct = Math.round(Number(btn.dataset.pos) * 100);
     btn.classList.toggle('on', Math.abs(targetPct - pct) <= 3);
   });
+}
+
+function renderEdgeStudio(optRatio){
+  const edge = liveAppearance.screen_edge || 'right';
+  const rail = document.getElementById('edge-drag-rail');
+  const pill = document.getElementById('edge-draggable-notch');
+  const tooltip = document.getElementById('notch-drag-tooltip');
+  const surfaceLabel = document.getElementById('edge-surface-label');
+  const badge = document.getElementById('edge-pos-badge');
+  const posRange = document.getElementById('pos-range');
+  const posVal = document.getElementById('pos-val');
+
+  if(rail){
+    rail.className = 'edge-drag-rail rail-' + edge;
+  }
+
+  const isArabic = uiLang === 'ar';
+  if(surfaceLabel){
+    if(edge === 'top'){
+      surfaceLabel.textContent = isArabic ? 'الحافة العلوية مفعلة' : 'Top Edge Active';
+    } else if(edge === 'left'){
+      surfaceLabel.textContent = isArabic ? 'الحافة اليسرى مفعلة' : 'Left Edge Active';
+    } else {
+      surfaceLabel.textContent = isArabic ? 'الحافة اليمنى مفعلة' : 'Right Edge Active';
+    }
+  }
+
+  const curRatio = (typeof optRatio === 'number') ? optRatio : (Number(posRange ? posRange.value : 50) / 100);
+  const clampedRatio = Math.max(0.05, Math.min(0.95, curRatio));
+  const pct = Math.round(clampedRatio * 100);
+
+  if(posRange && posRange.value !== String(pct)) posRange.value = String(pct);
+  if(posVal) posVal.textContent = pct + '%';
+
+  if(pill && !pill.classList.contains('dragging')){
+    if(edge === 'top'){
+      pill.style.left = pct + '%';
+      pill.style.top = '-9px';
+    } else {
+      pill.style.top = pct + '%';
+      pill.style.left = '';
+    }
+  }
+
+  if(tooltip){
+    tooltip.textContent = pct + '%';
+  }
+
+  if(badge){
+    let descriptor = '';
+    if(Math.abs(pct - 15) <= 2) descriptor = isArabic ? ' (الأعلى)' : (edge === 'top' ? ' (Left)' : ' (Top)');
+    else if(Math.abs(pct - 50) <= 2) descriptor = isArabic ? ' (المنتصف)' : ' (Center)';
+    else if(Math.abs(pct - 85) <= 2) descriptor = isArabic ? ' (الأسفل)' : (edge === 'top' ? ' (Right)' : ' (Bottom)');
+    badge.textContent = (isArabic ? 'الموضع: ' : 'Position: ') + pct + '%' + descriptor;
+  }
+
+  const markers = document.querySelectorAll('.edge-snap-marker');
+  markers.forEach(m => {
+    const mPos = Math.round(Number(m.dataset.pos) * 100);
+    const active = Math.abs(mPos - pct) <= 3;
+    m.style.opacity = active ? '1' : '0.65';
+    m.style.color = active ? 'var(--accent-hex, #0078d4)' : 'var(--text-dim)';
+  });
+
+  updatePosButtons(clampedRatio);
 }
 
 function initCustomizationHandlers(){
@@ -4404,7 +5319,7 @@ function initCustomizationHandlers(){
       const pct = Number(posRange.value);
       if(posVal) posVal.textContent = pct + '%';
       const ratio = pct / 100;
-      updatePosButtons(ratio);
+      renderEdgeStudio(ratio);
       clearTimeout(posTimer);
       posTimer = setTimeout(() => {
         invoke('set_notch_y', { ratio })
@@ -4419,12 +5334,110 @@ function initCustomizationHandlers(){
       const ratio = Number(btn.dataset.pos);
       if(posRange) posRange.value = String(Math.round(ratio * 100));
       if(posVal) posVal.textContent = Math.round(ratio * 100) + '%';
-      updatePosButtons(ratio);
+      renderEdgeStudio(ratio);
       invoke('set_notch_y', { ratio })
         .then(() => toast(ui('Saved', 'Saved')))
         .catch(e => strip('set_notch_y failed: ' + errText(e)));
     });
   });
+
+  // Draggable Edge Notch & Rail Interaction
+  const edgePill = document.getElementById('edge-draggable-notch');
+  const edgeRail = document.getElementById('edge-drag-rail');
+
+  function calculateRatioFromPointer(e){
+    if(!edgeRail) return 0.5;
+    const edge = liveAppearance.screen_edge || 'right';
+    const rect = edgeRail.getBoundingClientRect();
+    let r;
+    if(edge === 'top'){
+      r = (e.clientX - rect.left) / rect.width;
+    } else {
+      r = (e.clientY - rect.top) / rect.height;
+    }
+    r = Math.max(0.05, Math.min(0.95, r));
+
+    // Magnetic snap near 15%, 50%, 85%
+    if(Math.abs(r - 0.15) < 0.024) r = 0.15;
+    else if(Math.abs(r - 0.50) < 0.024) r = 0.50;
+    else if(Math.abs(r - 0.85) < 0.024) r = 0.85;
+
+    return r;
+  }
+
+  if(edgePill && edgeRail){
+    let isEdgeDragging = false;
+    let edgeDragTimer = null;
+
+    function applyEdgePosition(r, immediate){
+      const edge = liveAppearance.screen_edge || 'right';
+      const pct = Math.round(r * 100);
+
+      if(edge === 'top'){
+        edgePill.style.left = pct + '%';
+        edgePill.style.top = '-9px';
+      } else {
+        edgePill.style.top = pct + '%';
+        edgePill.style.left = '';
+      }
+
+      const tooltip = document.getElementById('notch-drag-tooltip');
+      if(tooltip) tooltip.textContent = pct + '%';
+
+      const posRange = document.getElementById('pos-range');
+      const posVal = document.getElementById('pos-val');
+      if(posRange) posRange.value = String(pct);
+      if(posVal) posVal.textContent = pct + '%';
+
+      renderEdgeStudio(r);
+
+      clearTimeout(edgeDragTimer);
+      if(immediate){
+        invoke('set_notch_y', { ratio: r }).catch(e => strip('set_notch_y failed: ' + errText(e)));
+      } else {
+        edgeDragTimer = setTimeout(() => {
+          invoke('set_notch_y', { ratio: r }).catch(e => strip('set_notch_y failed: ' + errText(e)));
+        }, 80);
+      }
+    }
+
+    edgePill.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      isEdgeDragging = true;
+      edgePill.setPointerCapture(e.pointerId);
+      edgePill.classList.add('dragging');
+    });
+
+    edgeRail.addEventListener('pointerdown', e => {
+      if(e.target === edgePill || edgePill.contains(e.target)) return;
+      e.preventDefault();
+      isEdgeDragging = true;
+      edgePill.setPointerCapture(e.pointerId);
+      edgePill.classList.add('dragging');
+      const r = calculateRatioFromPointer(e);
+      applyEdgePosition(r, true);
+    });
+
+    window.addEventListener('pointermove', e => {
+      if(!isEdgeDragging) return;
+      const r = calculateRatioFromPointer(e);
+      applyEdgePosition(r, false);
+    });
+
+    const finishEdgeDrag = e => {
+      if(!isEdgeDragging) return;
+      isEdgeDragging = false;
+      try { edgePill.releasePointerCapture(e.pointerId); } catch(_){}
+      edgePill.classList.remove('dragging');
+      const r = calculateRatioFromPointer(e);
+      applyEdgePosition(r, true);
+      toast(ui('Saved', 'Saved'));
+    };
+
+    window.addEventListener('pointerup', finishEdgeDrag);
+    window.addEventListener('pointercancel', finishEdgeDrag);
+  }
 
   // Global hotkey & interactive recording
   const hkInput = document.getElementById('hotkey-input');
@@ -4746,6 +5759,7 @@ function boot(){
       if(pr) pr.value = String(pct);
       if(pv) pv.textContent = pct + '%';
       updatePosButtons(r);
+      if(typeof renderEdgeStudio === 'function') renderEdgeStudio(r);
     }
   });
 
@@ -4783,6 +5797,7 @@ function boot(){
         if(pr) pr.value = String(pct);
         if(pv) pv.textContent = pct + '%';
         updatePosButtons(r);
+        if(typeof renderEdgeStudio === 'function') renderEdgeStudio(r);
       }
     });
     window.__TAURI__.event.listen('hotkey', e => {
@@ -4879,6 +5894,99 @@ function renderHardwareUI(){
   cards.forEach(c => {
     c.classList.toggle('on', c.dataset.trayDisp === (liveHardwareConfig.tray_display_mode || 'ai'));
   });
+
+  if(typeof renderHudMonitorStudio === 'function'){
+    renderHudMonitorStudio();
+  }
+}
+
+function renderHudMonitorStudio(){
+  const dock = liveHardwareConfig.overlay_dock || 'top-left';
+  const mx = Number(liveHardwareConfig.overlay_margin_x ?? 8);
+  const my = Number(liveHardwareConfig.overlay_margin_y ?? 8);
+
+  // Update Corner Zones active state
+  const zones = document.querySelectorAll('.hud-corner-zone');
+  zones.forEach(z => {
+    z.classList.toggle('on', dock !== 'custom' && z.dataset.corner === dock);
+  });
+
+  // Update Status Badge
+  const badge = document.getElementById('hud-dock-status-badge');
+  if(badge){
+    const isArabic = uiLang === 'ar';
+    if(dock === 'custom'){
+      badge.textContent = isArabic ? `وضع السحب الحر (${mx}px, ${my}px)` : `Free Drag Mode (${mx}px, ${my}px)`;
+      badge.style.borderColor = 'rgba(56, 189, 248, 0.5)';
+    } else {
+      const cornerNames = {
+        'top-left': isArabic ? 'أعلى-يسار' : 'Top-Left',
+        'top-right': isArabic ? 'أعلى-يمين' : 'Top-Right',
+        'bottom-left': isArabic ? 'أسفل-يسار' : 'Bottom-Left',
+        'bottom-right': isArabic ? 'أسفل-يمين' : 'Bottom-Right'
+      };
+      const cName = cornerNames[dock] || dock;
+      badge.textContent = isArabic ? `مثبّت ${cName} (${mx}px, ${my}px)` : `${cName} Docked (${mx}px, ${my}px)`;
+      badge.style.borderColor = 'var(--accent-hex, #0078d4)';
+    }
+  }
+
+  // Update Preset Chips
+  const presetBtns = document.querySelectorAll('.hud-preset-chips .btn-preset');
+  presetBtns.forEach(btn => {
+    const pVal = parseInt(btn.dataset.marginPreset, 10);
+    btn.classList.toggle('on', mx === pVal && my === pVal);
+  });
+
+  // Update Preview Pill & Guides inside monitor screen
+  const pill = document.getElementById('hud-preview-pill');
+  const screen = document.getElementById('hud-monitor-screen');
+  const guideX = document.getElementById('hud-guide-x');
+  const guideY = document.getElementById('hud-guide-y');
+
+  if(pill && screen && !pill.classList.contains('dragging')){
+    const screenW = screen.clientWidth || 440;
+    const screenH = screen.clientHeight || 190;
+    const pillW = pill.offsetWidth || 96;
+    const pillH = pill.offsetHeight || 36;
+
+    const scaleFactor = 0.22;
+    const scaledX = Math.round(mx * scaleFactor);
+    const scaledY = Math.round(my * scaleFactor);
+
+    let pillLeft = 8;
+    let pillTop = 8;
+
+    if(dock === 'top-left'){
+      pillLeft = 8 + scaledX;
+      pillTop = 8 + scaledY;
+      if(guideX){ guideX.style.left = pillLeft + 'px'; guideX.style.right = 'auto'; guideX.style.display = 'block'; }
+      if(guideY){ guideY.style.top = pillTop + 'px'; guideY.style.bottom = 'auto'; guideY.style.display = 'block'; }
+    } else if(dock === 'top-right'){
+      pillLeft = screenW - pillW - 8 - scaledX;
+      pillTop = 8 + scaledY;
+      if(guideX){ guideX.style.right = (screenW - pillLeft) + 'px'; guideX.style.left = 'auto'; guideX.style.display = 'block'; }
+      if(guideY){ guideY.style.top = pillTop + 'px'; guideY.style.bottom = 'auto'; guideY.style.display = 'block'; }
+    } else if(dock === 'bottom-left'){
+      pillLeft = 8 + scaledX;
+      pillTop = screenH - pillH - 8 - scaledY;
+      if(guideX){ guideX.style.left = pillLeft + 'px'; guideX.style.right = 'auto'; guideX.style.display = 'block'; }
+      if(guideY){ guideY.style.bottom = (screenH - pillTop) + 'px'; guideY.style.top = 'auto'; guideY.style.display = 'block'; }
+    } else if(dock === 'bottom-right'){
+      pillLeft = screenW - pillW - 8 - scaledX;
+      pillTop = screenH - pillH - 8 - scaledY;
+      if(guideX){ guideX.style.right = (screenW - pillLeft) + 'px'; guideX.style.left = 'auto'; guideX.style.display = 'block'; }
+      if(guideY){ guideY.style.bottom = (screenH - pillTop) + 'px'; guideY.style.top = 'auto'; guideY.style.display = 'block'; }
+    } else {
+      pillLeft = Math.max(8, Math.min(screenW - pillW - 8, Math.round((mx / 120) * (screenW - pillW))));
+      pillTop = Math.max(8, Math.min(screenH - pillH - 8, Math.round((my / 120) * (screenH - pillH))));
+      if(guideX) guideX.style.display = 'none';
+      if(guideY) guideY.style.display = 'none';
+    }
+
+    pill.style.left = pillLeft + 'px';
+    pill.style.top = pillTop + 'px';
+  }
 }
 
 function saveHardwareConfig(){
@@ -5171,6 +6279,171 @@ function initHardwareTab(){
       invoke('open_welcome_window').catch(e => strip('open_welcome_window failed: ' + errText(e)));
     });
   }
+
+  // Interactive Monitor Studio: Corner Zones Click
+  const cornerZones = document.querySelectorAll('.hud-corner-zone');
+  cornerZones.forEach(zone => {
+    zone.addEventListener('click', () => {
+      const corner = zone.dataset.corner;
+      if(corner){
+        liveHardwareConfig.overlay_dock = corner;
+        renderHardwareUI();
+        saveHardwareConfig();
+        invoke('snap_overlay_position', {
+          corner,
+          marginX: Number(liveHardwareConfig.overlay_margin_x ?? 8),
+          marginY: Number(liveHardwareConfig.overlay_margin_y ?? 8)
+        }).catch(()=>{});
+      }
+    });
+  });
+
+  // Screen Margin Presets Chips
+  const presetChips = document.querySelectorAll('.hud-preset-chips .btn-preset');
+  presetChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const val = parseInt(chip.dataset.marginPreset, 10);
+      if(!isNaN(val)){
+        liveHardwareConfig.overlay_margin_x = val;
+        liveHardwareConfig.overlay_margin_y = val;
+        renderHardwareUI();
+        saveHardwareConfig();
+        if(liveHardwareConfig.overlay_dock && liveHardwareConfig.overlay_dock !== 'custom'){
+          invoke('snap_overlay_position', {
+            corner: liveHardwareConfig.overlay_dock,
+            marginX: val,
+            marginY: val
+          }).catch(()=>{});
+        }
+      }
+    });
+  });
+
+  // Interactive Drag & Drop on HUD Preview Pill
+  const hudPill = document.getElementById('hud-preview-pill');
+  const hudScreen = document.getElementById('hud-monitor-screen');
+  if(hudPill && hudScreen){
+    let isHudDragging = false;
+    let hudStartX = 0;
+    let hudStartY = 0;
+    let hudStartLeft = 0;
+    let hudStartTop = 0;
+
+    hudPill.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      isHudDragging = true;
+      hudPill.setPointerCapture(e.pointerId);
+      hudPill.classList.add('dragging');
+      hudStartX = e.clientX;
+      hudStartY = e.clientY;
+      const rect = hudPill.getBoundingClientRect();
+      const parentRect = hudScreen.getBoundingClientRect();
+      hudStartLeft = rect.left - parentRect.left;
+      hudStartTop = rect.top - parentRect.top;
+    });
+
+    hudPill.addEventListener('pointermove', e => {
+      if(!isHudDragging) return;
+      const dx = e.clientX - hudStartX;
+      const dy = e.clientY - hudStartY;
+      const screenW = hudScreen.clientWidth || 440;
+      const screenH = hudScreen.clientHeight || 190;
+      const pillW = hudPill.offsetWidth || 96;
+      const pillH = hudPill.offsetHeight || 36;
+
+      let newLeft = Math.max(4, Math.min(screenW - pillW - 4, hudStartLeft + dx));
+      let newTop = Math.max(4, Math.min(screenH - pillH - 4, hudStartTop + dy));
+
+      hudPill.style.left = newLeft + 'px';
+      hudPill.style.top = newTop + 'px';
+
+      const cornerThreshold = 46;
+      let nearCorner = null;
+      if(newLeft <= cornerThreshold && newTop <= cornerThreshold){
+        nearCorner = 'top-left';
+      } else if(newLeft >= screenW - pillW - cornerThreshold && newTop <= cornerThreshold){
+        nearCorner = 'top-right';
+      } else if(newLeft <= cornerThreshold && newTop >= screenH - pillH - cornerThreshold){
+        nearCorner = 'bottom-left';
+      } else if(newLeft >= screenW - pillW - cornerThreshold && newTop >= screenH - pillH - cornerThreshold){
+        nearCorner = 'bottom-right';
+      }
+
+      cornerZones.forEach(z => {
+        z.classList.toggle('on', nearCorner ? z.dataset.corner === nearCorner : false);
+      });
+
+      const badge = document.getElementById('hud-dock-status-badge');
+      if(badge){
+        const isArabic = uiLang === 'ar';
+        if(nearCorner){
+          const names = {
+            'top-left': isArabic ? 'أعلى-يسار' : 'Top-Left',
+            'top-right': isArabic ? 'أعلى-يمين' : 'Top-Right',
+            'bottom-left': isArabic ? 'أسفل-يسار' : 'Bottom-Left',
+            'bottom-right': isArabic ? 'أسفل-يمين' : 'Bottom-Right'
+          };
+          badge.textContent = isArabic ? `إفلات للتثبيت في: ${names[nearCorner]}` : `Release to Dock: ${names[nearCorner]}`;
+        } else {
+          badge.textContent = isArabic ? `سحب حر (X: ${Math.round(newLeft)}, Y: ${Math.round(newTop)})` : `Free Drag (X: ${Math.round(newLeft)}, Y: ${Math.round(newTop)})`;
+        }
+      }
+    });
+
+    const finishHudDrag = e => {
+      if(!isHudDragging) return;
+      isHudDragging = false;
+      try { hudPill.releasePointerCapture(e.pointerId); } catch(_){}
+      hudPill.classList.remove('dragging');
+
+      const screenW = hudScreen.clientWidth || 440;
+      const screenH = hudScreen.clientHeight || 190;
+      const pillW = hudPill.offsetWidth || 96;
+      const pillH = hudPill.offsetHeight || 36;
+      const currentLeft = parseFloat(hudPill.style.left) || 0;
+      const currentTop = parseFloat(hudPill.style.top) || 0;
+
+      const cornerThreshold = 52;
+      let finalDock = 'custom';
+      if(currentLeft <= cornerThreshold && currentTop <= cornerThreshold){
+        finalDock = 'top-left';
+      } else if(currentLeft >= screenW - pillW - cornerThreshold && currentTop <= cornerThreshold){
+        finalDock = 'top-right';
+      } else if(currentLeft <= cornerThreshold && currentTop >= screenH - pillH - cornerThreshold){
+        finalDock = 'bottom-left';
+      } else if(currentLeft >= screenW - pillW - cornerThreshold && currentTop >= screenH - pillH - cornerThreshold){
+        finalDock = 'bottom-right';
+      }
+
+      liveHardwareConfig.overlay_dock = finalDock;
+      if(finalDock === 'custom'){
+        liveHardwareConfig.overlay_margin_x = Math.max(0, Math.min(120, Math.round((currentLeft / (screenW - pillW)) * 120)));
+        liveHardwareConfig.overlay_margin_y = Math.max(0, Math.min(120, Math.round((currentTop / (screenH - pillH)) * 120)));
+      }
+      renderHardwareUI();
+      saveHardwareConfig();
+      if(finalDock !== 'custom'){
+        invoke('snap_overlay_position', {
+          corner: finalDock,
+          marginX: Number(liveHardwareConfig.overlay_margin_x ?? 8),
+          marginY: Number(liveHardwareConfig.overlay_margin_y ?? 8)
+        }).catch(()=>{});
+      }
+    };
+
+    hudPill.addEventListener('pointerup', finishHudDrag);
+    hudPill.addEventListener('pointercancel', finishHudDrag);
+  }
+
+  // Metric Cards Click Delegation to Switch
+  const metricCards = document.querySelectorAll('.hw-metrics-grid .metric-card');
+  metricCards.forEach(card => {
+    card.addEventListener('click', e => {
+      if(e.target.closest('.sw')) return;
+      const sw = card.querySelector('.sw');
+      if(sw) sw.click();
+    });
+  });
 
   if(window.__TAURI__ && window.__TAURI__.event){
     window.__TAURI__.event.listen('tray_display_mode_changed', e => {
